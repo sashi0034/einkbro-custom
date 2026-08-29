@@ -103,6 +103,11 @@ class EBWebViewClient(
     /** URL the userscript menu registry was last cleared for; see [onPageStarted]. */
     private var lastUserScriptUrl: String? = null
 
+    override fun onScaleChanged(view: WebView, oldScale: Float, newScale: Float) {
+        super.onScaleChanged(view, oldScale, newScale)
+        if (oldScale != newScale) ebWebView.pageTurnMarker?.clear()
+    }
+
     override fun doUpdateVisitedHistory(view: WebView, url: String, isReload: Boolean) {
         super.doUpdateVisitedHistory(view, url, isReload)
         // Update hasVideo for SPA navigations (e.g., YouTube client-side routing)

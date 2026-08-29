@@ -9,6 +9,7 @@ import android.os.SystemClock
 import android.print.PrintDocumentAdapter
 import android.view.KeyEvent
 import android.view.MotionEvent
+import android.view.ViewConfiguration
 import android.webkit.ValueCallback
 import android.webkit.WebSettings
 import android.webkit.WebView
@@ -191,6 +192,16 @@ open class EBWebView(
     var wasAtTopOnTouchStart: Boolean = true
         private set
 
+    // WebView scroll callbacks do not fire when a page scrolls an inner CSS
+    // container. Track a real drag independently of ebook-mode interception so
+    // the page-turn seam also disappears for those in-page scrolls.
+    private val pageTurnMarkerTouchSlop by lazy {
+        ViewConfiguration.get(context).scaledTouchSlop
+    }
+    private var pageTurnMarkerTouchStartX = 0f
+    private var pageTurnMarkerTouchStartY = 0f
+    private var pageTurnMarkerTouchTracking = false
+
     // Ebook touch gesture tracking — native interception replaces ebook_touch.js
     // so that taps on iframes (Instagram/Twitter embeds) also trigger page turns.
     private var ebookTouchStartX = 0f
@@ -206,6 +217,7 @@ open class EBWebView(
         if (event.actionMasked == MotionEvent.ACTION_DOWN) {
             wasAtTopOnTouchStart = scrollY == 0 && isInnerScrollAtTop
         }
+        updatePageTurnMarkerForTouch(event)
 
         if (!config.touch.isEbookModeActive || ebookTouchTemporarilyDisabled) {
             return super.dispatchTouchEvent(event)
@@ -285,6 +297,38 @@ open class EBWebView(
         return super.dispatchTouchEvent(event)
     }
 
+    private fun updatePageTurnMarkerForTouch(event: MotionEvent) {
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                pageTurnMarkerTouchStartX = event.x
+                pageTurnMarkerTouchStartY = event.y
+                pageTurnMarkerTouchTracking = true
+            }
+
+            MotionEvent.ACTION_POINTER_DOWN -> {
+                // A second pointer starts a potential pinch. Clear immediately
+                // rather than leaving a stale seam during the first scale frame.
+                pageTurnMarkerTouchTracking = false
+                pageTurnMarker?.clear()
+            }
+
+            MotionEvent.ACTION_MOVE -> {
+                if (pageTurnMarkerTouchTracking) {
+                    val dx = event.x - pageTurnMarkerTouchStartX
+                    val dy = event.y - pageTurnMarkerTouchStartY
+                    val slop = pageTurnMarkerTouchSlop.toFloat()
+                    if (dx * dx + dy * dy > slop * slop) {
+                        pageTurnMarkerTouchTracking = false
+                        pageTurnMarker?.clear()
+                    }
+                }
+            }
+
+            MotionEvent.ACTION_UP,
+            MotionEvent.ACTION_CANCEL -> pageTurnMarkerTouchTracking = false
+        }
+    }
+
     private fun sendCancelEvent(upEvent: MotionEvent) {
         val cancelEvent = MotionEvent.obtain(upEvent)
         cancelEvent.action = MotionEvent.ACTION_CANCEL
@@ -294,6 +338,7 @@ open class EBWebView(
 
     override fun onScrollChanged(l: Int, t: Int, old_l: Int, old_t: Int) {
         super.onScrollChanged(l, t, old_l, old_t)
+        if (l != old_l || t != old_t) pageTurnMarker?.clear()
         onScrollChangeListener?.onScrollChange(t, old_t)
     }
 

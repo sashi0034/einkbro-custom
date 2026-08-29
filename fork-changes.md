@@ -116,7 +116,9 @@ re-read or skip a line. A dotted rule now marks where the previous screen ended.
   hook. Plain finger scrolling is deliberately not marked.
 - The line stays until the next page turn replaces it (no fade-out timer, which
   on e-ink would cost a full-screen refresh for nothing) and is cleared on
-  navigation.
+  manual scrolling, pinch zoom, or navigation. Drag detection also covers inner
+  CSS scroll containers, whose movement does not change the WebView's own
+  scroll coordinates.
 - Placement rule: a content point at view coordinate `v` before the turn is at
   `v - d` after it, where `d` is the signed scroll delta. So a forward turn
   leaves the old far edge at `size - d`, and a backward turn leaves the old near

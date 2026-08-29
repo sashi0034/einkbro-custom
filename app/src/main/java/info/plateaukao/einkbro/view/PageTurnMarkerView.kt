@@ -14,9 +14,10 @@ import android.view.View
  * it is easy to re-read or skip a line. This draws a dotted rule at the seam:
  * the position the old screen edge now occupies.
  *
- * The line stays until the next page turn replaces it (or the page navigates
- * away and [clear] is called) — deliberately no fade-out timer, which on e-ink
- * would cost a full-screen refresh for no information.
+ * The line stays until the next page turn replaces it, the user scrolls or
+ * zooms, or the page navigates away and [clear] is called. There is deliberately
+ * no fade-out timer, which on e-ink would cost a full-screen refresh for no
+ * information.
  *
  * Like [TouchAreaHintView], the stroke is a dark core over a light halo so it
  * reads on both light and dark pages.
