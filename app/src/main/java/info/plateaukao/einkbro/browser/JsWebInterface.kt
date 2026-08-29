@@ -215,6 +215,15 @@ class JsWebInterface(
     }
 
     @JavascriptInterface
+    fun exitReaderModeAtSourceEnd(): Boolean {
+        val callback = jsBrowserCallback ?: return false
+        webView.post {
+            if (webView.isReaderModeOn) callback.exitReaderModeAtSourceEnd()
+        }
+        return true
+    }
+
+    @JavascriptInterface
     fun ebookPageUp() {
         webView.post {
             if (!configManager.touch.switchTouchAreaAction) webView.pageUpWithNoAnimation()

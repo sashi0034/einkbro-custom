@@ -987,6 +987,8 @@ open class EBWebView(
 
     fun toggleReaderMode(isVertical: Boolean = false) = readerHelper.toggleReaderMode(isVertical)
 
+    fun exitReaderModeAtSourceEnd() = readerHelper.exitReaderModeAtSourceEnd()
+
     //endregion
 
     //region Translation (delegated to WebViewTranslationHelper)

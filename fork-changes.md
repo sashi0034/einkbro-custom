@@ -158,6 +158,29 @@ Files: `res/drawable/ic_reader_mode.xml` (new),
 `view/viewControllers/ComposeToolbarViewController.kt`,
 `activity/BrowserActivity.kt`.
 
+## 6. Reader-mode footer link returns to the matching source position
+
+Reader mode now repeats the original-page `link` after the extracted article.
+Inside the app, that footer link exits reader mode and scrolls the restored page
+to the original DOM element that produced the end of the extracted content,
+instead of reopening the source at the top.
+
+- Before Readability parses, temporary indexes are added only to cloned
+  elements and map them to the untouched live source DOM. Only the selected
+  article-end element is retained in the cached original body; temporary
+  indexes never appear in reader content.
+- JSON-LD-scoped extraction keeps the same mapping because the scope is cloned
+  after the temporary indexes are attached.
+- If no matching source element survives extraction, the restored page falls
+  back to its document end. Outside the Android bridge (for example exported
+  reader HTML), the footer remains a normal original-URL link.
+- The existing top link and normal reader-mode exit behavior are unchanged.
+
+Files: `assets/MozReadability.js`,
+`assets/disable_reader_mode_at_source_end.js` (new),
+`view/WebViewJsBridge.kt`, `view/WebViewReaderHelper.kt`,
+`browser/JsWebInterface.kt`, `activity/BrowserActivity.kt`.
+
 
 ---
 

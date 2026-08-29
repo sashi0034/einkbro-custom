@@ -272,6 +272,14 @@ class WebViewJsBridge(private val webView: WebView) {
         webView.evaluateJavascript(loadAssetFile("disable_reader_mode.js"), null)
     }
 
+    fun disableReaderModeAtSourceEnd() {
+        clearCssSlot(CSS_SLOT_READER)
+        clearCssSlot(CSS_SLOT_VERTICAL)
+        clearCssSlot(CSS_SLOT_READER_SETTINGS)
+        setViewportContent(VIEWPORT_DEFAULT)
+        webView.evaluateJavascript(loadAssetFile("disable_reader_mode_at_source_end.js"), null)
+    }
+
     fun replaceWithReaderModeBody(keepExtraContent: Boolean, callback: ValueCallback<String>?) {
         webView.evaluateJavascript(
             "(function() { ${replaceWithReaderModeBodyJs(keepExtraContent)} })();",
@@ -330,15 +338,23 @@ class WebViewJsBridge(private val webView: WebView) {
 
         private fun replaceWithReaderModeBodyJs(keepExtraContent: Boolean) = """
             ${if (keepExtraContent) "inlineCodeStyles();" else ""}
-            var scopedDoc = (typeof getReadabilityScopedDocument === 'function') ? getReadabilityScopedDocument() : null;
+            var sourceElements = getReaderSourceElements();
+            var scopedDoc = (typeof getReadabilityScopedDocument === 'function')
+                ? getReadabilityScopedDocument(sourceElements)
+                : null;
             var documentClone = scopedDoc || document.cloneNode(true);
+            if (!scopedDoc) {
+                markReaderCloneSourceElements(documentClone, sourceElements);
+            }
             var article = new Readability(documentClone, ${readabilityOptions(keepExtraContent)}).parse();
-            document.innerHTMLCache = document.body.innerHTML;
 
             if (article) {
                 article.readingTime = getReadingTime(article.length, document.documentElement.lang.substring(0, 2));
+                preserveReaderSourceEnd(article, sourceElements);
+                document.innerHTMLCache = document.body.innerHTML;
 
                 document.body.outerHTML = createHtmlBodyWithUrl(article, location.href)
+                attachReaderSourceEndLinkHandler();
                 disableSiteStyleSheets();
 
                 var viewport = document.getElementsByName('viewport')[0];

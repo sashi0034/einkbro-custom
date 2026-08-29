@@ -660,6 +660,11 @@ open class BrowserActivity : FragmentActivity(), BrowserController {
     override fun isActionModeActive(): Boolean = actionModeDelegate.isActionModeActive()
     override fun dismissActionMode() = actionModeDelegate.dismissActionMode()
 
+    override fun exitReaderModeAtSourceEnd() {
+        ebWebView.exitReaderModeAtSourceEnd()
+        composeToolbarViewController.updateIcons(ToolbarAction.ReaderMode)
+    }
+
     override fun handleBackKey() {
         ViewUnit.hideKeyboard(this)
         if (chromeSetupDelegate.overviewDialogController.isVisible()) hideOverview()

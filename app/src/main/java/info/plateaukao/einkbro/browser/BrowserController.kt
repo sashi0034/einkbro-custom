@@ -222,6 +222,7 @@ interface JsBrowserCallback {
     fun updateSelectionRect(left: Float, top: Float, right: Float, bottom: Float)
     fun isActionModeActive(): Boolean
     fun dismissActionMode()
+    fun exitReaderModeAtSourceEnd()
 }
 
 //endregion

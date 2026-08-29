@@ -7,5 +7,7 @@
         document.body.innerHTML = document.innerHTMLCache;
     }
     document.body.classList.remove('mozac-readerview-body');
+    const sourceEnd = document.querySelector('[data-einkbro-reader-source-end]');
+    if (sourceEnd) sourceEnd.removeAttribute('data-einkbro-reader-source-end');
     window.scrollTo(0, 0);
 })();

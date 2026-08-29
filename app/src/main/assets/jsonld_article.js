@@ -94,7 +94,7 @@
     // Readability's scoring sees one article instead of several. Structural
     // HTML (images, headings, links) is preserved because we clone the real
     // DOM element rather than synthesizing from plain text.
-    window.getReadabilityScopedDocument = function () {
+    window.getReadabilityScopedDocument = function (sourceElements) {
         try {
             const jsonLd = findJsonLdArticle();
             if (!jsonLd || !jsonLd.articleBody) return null;
@@ -124,7 +124,22 @@
             }
 
             const wrapper = doc.createElement("article");
-            wrapper.appendChild(container.cloneNode(true));
+            const clonedContainer = container.cloneNode(true);
+            if (Array.isArray(sourceElements)) {
+                const sourceIndexes = new Map();
+                sourceElements.forEach(function (element, index) {
+                    sourceIndexes.set(element, index);
+                });
+                const sourceTree = [container].concat(Array.from(container.querySelectorAll("*")));
+                const cloneTree = [clonedContainer].concat(Array.from(clonedContainer.querySelectorAll("*")));
+                sourceTree.forEach(function (element, index) {
+                    const sourceIndex = sourceIndexes.get(element);
+                    if (sourceIndex !== undefined && cloneTree[index]) {
+                        cloneTree[index].setAttribute("data-einkbro-reader-source-index", String(sourceIndex));
+                    }
+                });
+            }
+            wrapper.appendChild(clonedContainer);
             doc.body.appendChild(wrapper);
             return doc;
         } catch (e) {

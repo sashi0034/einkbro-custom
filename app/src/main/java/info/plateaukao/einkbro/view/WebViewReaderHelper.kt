@@ -82,15 +82,29 @@ class WebViewReaderHelper(
             webView.settings.textZoom = config.display.readerFontSize
             updateCssStyle()
         } else {
-            // Vertical read only exists inside reader mode; leaving reader mode
-            // (e.g. via the reader toolbar icon while vertical is on) exits it too.
-            isVerticalRead = false
-            webView.jsBridge.disableReaderMode()
-            webView.settings.textZoom = config.display.fontSize
-            // Recompute the main style slot with the normal-mode font so the
-            // reader font doesn't stick after leaving reader mode.
-            updateCssStyle()
+            exitReaderMode(atSourceEnd = false)
         }
+    }
+
+    fun exitReaderModeAtSourceEnd() {
+        if (!isReaderModeOn) return
+        isReaderModeOn = false
+        exitReaderMode(atSourceEnd = true)
+    }
+
+    private fun exitReaderMode(atSourceEnd: Boolean) {
+        // Vertical read only exists inside reader mode; leaving reader mode
+        // (e.g. via the reader toolbar icon while vertical is on) exits it too.
+        isVerticalRead = false
+        if (atSourceEnd) {
+            webView.jsBridge.disableReaderModeAtSourceEnd()
+        } else {
+            webView.jsBridge.disableReaderMode()
+        }
+        webView.settings.textZoom = config.display.fontSize
+        // Recompute the main style slot with the normal-mode font so the
+        // reader font doesn't stick after leaving reader mode.
+        updateCssStyle()
     }
 
     /**

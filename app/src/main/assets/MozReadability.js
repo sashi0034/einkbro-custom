@@ -2901,10 +2901,80 @@ function escapeHTML(text) {
     .replace(/\'/g, "&#039;");
 }
 
+const READER_SOURCE_INDEX_ATTRIBUTE = "data-einkbro-reader-source-index";
+const READER_SOURCE_END_ATTRIBUTE = "data-einkbro-reader-source-end";
+
+function getReaderSourceElements() {
+  return Array.from(document.body.querySelectorAll("*"));
+}
+
+/**
+ * Tags only the full-document clone, leaving the live page untouched. A JSON-LD
+ * scoped clone is tagged while it is built in jsonld_article.js instead.
+ */
+function markReaderCloneSourceElements(documentClone, sourceElements) {
+  const clonedElements = Array.from(documentClone.body.querySelectorAll("*"));
+  if (clonedElements.length !== sourceElements.length) return;
+  clonedElements.forEach(function (element, index) {
+    element.setAttribute(READER_SOURCE_INDEX_ATTRIBUTE, String(index));
+  });
+}
+
+/**
+ * Finds the last original element retained by Readability and marks its live
+ * counterpart. This also strips the temporary indexes from the reader HTML.
+ */
+function preserveReaderSourceEnd(article, sourceElements) {
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = article.content;
+  const retainedElements = wrapper.querySelectorAll(
+    `[${READER_SOURCE_INDEX_ATTRIBUTE}]`
+  );
+  let sourceEnd = null;
+
+  for (let i = retainedElements.length - 1; i >= 0; i--) {
+    const sourceIndex = Number(
+      retainedElements[i].getAttribute(READER_SOURCE_INDEX_ATTRIBUTE)
+    );
+    if (Number.isInteger(sourceIndex) && sourceElements[sourceIndex]) {
+      sourceEnd = sourceElements[sourceIndex];
+      break;
+    }
+  }
+
+  wrapper.querySelectorAll(`[${READER_SOURCE_INDEX_ATTRIBUTE}]`).forEach(
+    function (element) {
+      element.removeAttribute(READER_SOURCE_INDEX_ATTRIBUTE);
+    }
+  );
+  article.content = wrapper.innerHTML;
+
+  if (sourceEnd) {
+    sourceEnd.setAttribute(READER_SOURCE_END_ATTRIBUTE, "");
+    article.hasSourceEnd = true;
+  }
+}
+
+function attachReaderSourceEndLinkHandler() {
+  const link = document.getElementById("einkbro-reader-source-end-link");
+  if (!link || !window.androidApp || !window.androidApp.exitReaderModeAtSourceEnd) {
+    return;
+  }
+  link.addEventListener("click", function (event) {
+    if (window.androidApp.exitReaderModeAtSourceEnd()) {
+      event.preventDefault();
+    }
+  });
+}
+
 function createHtmlBodyWithUrl(article, originalUrl) {
   if (!originalUrl || originalUrl === "null") return createHtmlBody(article);
   const safeTitle = escapeHTML(article.title);
   const safeReadingTime = escapeHTML(article.readingTime);
+  const safeOriginalUrl = escapeHTML(originalUrl);
+  const sourceEndLinkId = article.hasSourceEnd
+    ? ' id="einkbro-reader-source-end-link"'
+    : "";
   return `
     <body class="mozac-readerview-body">
       <div id="mozac-readerview-container" class="container">
@@ -2912,11 +2982,15 @@ function createHtmlBodyWithUrl(article, originalUrl) {
           <h3>${safeTitle}</h3>
         </div>
         <div>
-          ${safeReadingTime}&nbsp;|&nbsp;<a href="${escapeHTML(originalUrl)}">link</a>
+          ${safeReadingTime}&nbsp;|&nbsp;<a href="${safeOriginalUrl}">link</a>
         </div>
         <hr/>
         <div class="content">
           <div class="mozac-readerview-content">${article.content}</div>
+        </div>
+        <hr/>
+        <div>
+          <a${sourceEndLinkId} href="${safeOriginalUrl}">link</a>
         </div>
       </div>
     </body>
