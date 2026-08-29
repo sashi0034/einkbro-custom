@@ -136,8 +136,7 @@ class FullscreenDelegate(
                 state.fabImageViewController.show()
             }
             binding.mainSearchPanel.visibility = View.INVISIBLE
-            binding.appBar.visibility = GONE
-            binding.contentSeparator.visibility = GONE
+            binding.setAppBarsVisibility(GONE)
             ViewUnit.updateSideTabBarVisibility(binding)
             hideStatusBar()
             state.statusbarViewController.show()
@@ -153,8 +152,7 @@ class FullscreenDelegate(
         state.fabImageViewController.hide()
         val binding = state.binding
         binding.mainSearchPanel.visibility = View.INVISIBLE
-        binding.appBar.visibility = VISIBLE
-        binding.contentSeparator.visibility = VISIBLE
+        binding.setAppBarsVisibility(VISIBLE)
         ViewUnit.updateSideTabBarVisibility(binding)
         binding.inputUrl.visibility = View.INVISIBLE
         state.composeToolbarViewController.show()

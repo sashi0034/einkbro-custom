@@ -107,6 +107,7 @@ fun ComposedToolbar(
     isIncognito: Boolean,
     isVertical: Boolean = false,
     isToolbarOnRight: Boolean = false,
+    iconSpacing: Dp = 0.dp,
     onIconClick: (ToolbarAction) -> Unit,
     onIconLongClick: ((ToolbarAction) -> Unit)? = null,
     albumList: MutableState<List<Album>>,
@@ -133,6 +134,7 @@ fun ComposedToolbar(
                 pageInfo = pageInfo,
                 isIncognito = isIncognito,
                 isVertical = true,
+                iconSpacing = iconSpacing,
                 onClick = onIconClick,
                 onLongClick = onIconLongClick,
             )
@@ -167,6 +169,7 @@ fun ComposedToolbar(
                 pageInfo = pageInfo,
                 isIncognito = isIncognito,
                 isVertical = false,
+                iconSpacing = iconSpacing,
                 onClick = onIconClick,
                 onLongClick = onIconLongClick,
             )
@@ -255,6 +258,7 @@ fun ComposedIconBar(
     pageInfo: String,
     isIncognito: Boolean,
     isVertical: Boolean = false,
+    iconSpacing: Dp = 0.dp,
     onClick: (ToolbarAction) -> Unit,
     onLongClick: ((ToolbarAction) -> Unit)? = null,
 ) {
@@ -268,7 +272,7 @@ fun ComposedIconBar(
                     verticalScroll(rememberScrollState())
                 },
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top,
+            verticalArrangement = Arrangement.spacedBy(iconSpacing, Alignment.Top),
         ) {
             toolbarActionInfos.forEach { toolbarActionInfo ->
                 val action = toolbarActionInfo.toolbarAction
@@ -297,11 +301,11 @@ fun ComposedIconBar(
         BoxWithConstraints {
             val barWidth = maxWidth
             // Loop-invariant: computed once per bar recomposition instead of per icon.
-            val spacerWidth = remember(toolbarActionInfos, barWidth) {
-                calculateSpacerWidth(toolbarActionInfos, barWidth)
+            val spacerWidth = remember(toolbarActionInfos, barWidth, iconSpacing) {
+                calculateSpacerWidth(toolbarActionInfos, barWidth, iconSpacing)
             }
-            val titleWidth = remember(toolbarActionInfos, barWidth) {
-                calculateTitleWidth(toolbarActionInfos, barWidth)
+            val titleWidth = remember(toolbarActionInfos, barWidth, iconSpacing) {
+                calculateTitleWidth(toolbarActionInfos, barWidth, iconSpacing)
             }
             val shouldRowFixed = toolbarActionInfos.any { it.toolbarAction in spacerActions }
                     && spacerWidth > 5.dp
@@ -317,7 +321,7 @@ fun ComposedIconBar(
                         )
                     },
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.End
+                horizontalArrangement = Arrangement.spacedBy(iconSpacing, Alignment.End)
             ) {
                 toolbarActionInfos.forEach { toolbarActionInfo ->
                     CreateToolbarIcon(
@@ -405,12 +409,13 @@ fun ReorderableComposedIconBar(
     pageInfo: String,
     onClick: (ToolbarAction) -> Unit,
     highlightedAction: ToolbarAction? = null,
+    iconSpacing: Dp = 0.dp,
 ) {
     // Real constraints, not Configuration screen dims: at targetSdk 35+
     // screenWidthDp includes the system bars and can exceed the bar's width.
     BoxWithConstraints {
-        val spacerWidth = calculateSpacerWidth(list.value, maxWidth)
-        val titleWidth = calculateTitleWidth(list.value, maxWidth)
+        val spacerWidth = calculateSpacerWidth(list.value, maxWidth, iconSpacing)
+        val titleWidth = calculateTitleWidth(list.value, maxWidth, iconSpacing)
         ReorderableRow(
             modifier = Modifier
                 .height(50.dp)
@@ -427,7 +432,7 @@ fun ReorderableComposedIconBar(
                 }
             },
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.End
+            horizontalArrangement = Arrangement.spacedBy(iconSpacing, Alignment.End)
         ) { _, toolbarActionInfo, isDragging ->
             key(toolbarActionInfo) {
                 val toolbarAction = toolbarActionInfo.toolbarAction
@@ -479,13 +484,15 @@ fun ReorderableComposedIconColumn(
     pageInfo: String,
     onClick: (ToolbarAction) -> Unit,
     highlightedAction: ToolbarAction? = null,
+    iconSpacing: Dp = 0.dp,
 ) {
     // Real constraints, not Configuration screen dims: at targetSdk 35+
     // screenHeightDp includes the system bars and overshoots the column height.
     BoxWithConstraints {
         ReorderableComposedIconColumnContent(
             list, title, tabCount, pageInfo, onClick, highlightedAction,
-            spacerHeight = calculateSpacerHeight(list.value, maxHeight),
+            spacerHeight = calculateSpacerHeight(list.value, maxHeight, iconSpacing),
+            iconSpacing = iconSpacing,
         )
     }
 }
@@ -499,6 +506,7 @@ private fun ReorderableComposedIconColumnContent(
     onClick: (ToolbarAction) -> Unit,
     highlightedAction: ToolbarAction?,
     spacerHeight: Dp,
+    iconSpacing: Dp,
 ) {
     ReorderableColumn(
         modifier = Modifier
@@ -513,7 +521,7 @@ private fun ReorderableComposedIconColumnContent(
             }
         },
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top,
+        verticalArrangement = Arrangement.spacedBy(iconSpacing, Alignment.Top),
     ) { _, toolbarActionInfo, isDragging ->
         key(toolbarActionInfo) {
             val toolbarAction = toolbarActionInfo.toolbarAction
@@ -572,17 +580,29 @@ private fun rememberBlinkAlpha(isActive: Boolean): Float {
     return alpha.value
 }
 
-private fun calculateSpacerHeight(list: List<ToolbarActionInfo>, screenHeight: Dp): Dp {
+/** Total of the gaps Arrangement.spacedBy inserts between [itemCount] items. */
+private fun totalGapWidth(itemCount: Int, iconSpacing: Dp): Dp =
+    if (itemCount > 1) iconSpacing * (itemCount - 1) else 0.dp
+
+private fun calculateSpacerHeight(
+    list: List<ToolbarActionInfo>,
+    screenHeight: Dp,
+    iconSpacing: Dp = 0.dp,
+): Dp {
     val spacerCount = list.count { it.toolbarAction in spacerActions }
     if (spacerCount == 0) return toolbarIconWidth
 
     val totalIconHeight = list.filterNot { it.toolbarAction in spacerActions }
         .map { toolbarIconWidth }.sumDp()
-    val leftHeight = screenHeight - totalIconHeight
+    val leftHeight = screenHeight - totalIconHeight - totalGapWidth(list.size, iconSpacing)
     return (if (leftHeight > 5.dp) leftHeight else 5.dp) / spacerCount
 }
 
-private fun calculateSpacerWidth(list: List<ToolbarActionInfo>, screenWidth: Dp): Dp {
+private fun calculateSpacerWidth(
+    list: List<ToolbarActionInfo>,
+    screenWidth: Dp,
+    iconSpacing: Dp = 0.dp,
+): Dp {
     val spacerCount = list.count { it.toolbarAction in spacerActions }
     if (spacerCount == 0) return 0.dp
 
@@ -593,18 +613,22 @@ private fun calculateSpacerWidth(list: List<ToolbarActionInfo>, screenWidth: Dp)
         .map {
             if (it.toolbarAction == Time) 55.dp else iconWidth
         }.sumDp()
-    val leftWidth = screenWidth - totalActionIconWidth
+    val leftWidth = screenWidth - totalActionIconWidth - totalGapWidth(list.size, iconSpacing)
     val spacerWidth = (if (leftWidth > 5.dp) leftWidth else 5.dp) / spacerCount
     return spacerWidth
 }
 
-private fun calculateTitleWidth(list: List<ToolbarActionInfo>, screenWidth: Dp): Dp {
+private fun calculateTitleWidth(
+    list: List<ToolbarActionInfo>,
+    screenWidth: Dp,
+    iconSpacing: Dp = 0.dp,
+): Dp {
     if (list.none { it.toolbarAction == Title }) return 0.dp
 
     val iconWidth = 46.dp
     val totalActionIconWidth =
         list.filterNot { it.toolbarAction == Title }.map { if (it.toolbarAction == Time) 55.dp else iconWidth }.sumDp()
-    val finalWidth = screenWidth - totalActionIconWidth
+    val finalWidth = screenWidth - totalActionIconWidth - totalGapWidth(list.size, iconSpacing)
     return if (finalWidth > 100.dp) finalWidth else 100.dp
 }
 

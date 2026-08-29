@@ -44,12 +44,17 @@ class ReaderSettingsDialogFragment(
     @Composable
     override fun Content() {
         ReaderSettingsContent(
-            initPageMargin = config.display.paddingForReaderMode,
+            initMarginVertical = config.display.readerPaddingVertical,
+            initMarginHorizontal = config.display.readerPaddingHorizontal,
             initLineSpacing = config.display.readerLineSpacing,
             initTwoColumn = config.display.readerTwoColumnInLandscape,
             initKeepExtraContent = config.display.readerKeepExtraContent,
-            onPageMarginChanged = {
-                config.display.paddingForReaderMode = it
+            onMarginVerticalChanged = {
+                config.display.readerPaddingVertical = it
+                onSettingChanged()
+            },
+            onMarginHorizontalChanged = {
+                config.display.readerPaddingHorizontal = it
                 onSettingChanged()
             },
             onLineSpacingChanged = {
@@ -74,17 +79,20 @@ class ReaderSettingsDialogFragment(
 
 @Composable
 fun ReaderSettingsContent(
-    initPageMargin: Int,
+    initMarginVertical: Int,
+    initMarginHorizontal: Int,
     initLineSpacing: Int,
     initTwoColumn: Boolean,
     initKeepExtraContent: Boolean,
-    onPageMarginChanged: (Int) -> Unit,
+    onMarginVerticalChanged: (Int) -> Unit,
+    onMarginHorizontalChanged: (Int) -> Unit,
     onLineSpacingChanged: (Int) -> Unit,
     onTwoColumnChanged: (Boolean) -> Unit,
     onKeepExtraContentChanged: (Boolean) -> Unit,
     onFontConfigClick: () -> Unit,
 ) {
-    var pageMargin by remember { mutableFloatStateOf(initPageMargin.toFloat()) }
+    var marginVertical by remember { mutableFloatStateOf(initMarginVertical.toFloat()) }
+    var marginHorizontal by remember { mutableFloatStateOf(initMarginHorizontal.toFloat()) }
     var lineSpacing by remember { mutableFloatStateOf(initLineSpacing.toFloat()) }
     var twoColumn by remember { mutableStateOf(initTwoColumn) }
     var keepExtraContent by remember { mutableStateOf(initKeepExtraContent) }
@@ -116,17 +124,31 @@ fun ReaderSettingsContent(
         HorizontalSeparator()
 
         Text(
-            text = "${stringResource(R.string.page_margin)}: ${pageMargin.roundToInt()}px",
+            text = "${stringResource(R.string.page_margin_vertical)}: ${marginVertical.roundToInt()}px",
             color = MaterialTheme.colors.onBackground,
             modifier = Modifier.padding(top = 10.dp),
         )
         Slider(
-            value = pageMargin,
+            value = marginVertical,
             valueRange = 0f..100f,
             steps = 19,
             onValueChange = {
-                pageMargin = it
-                onPageMarginChanged(it.roundToInt())
+                marginVertical = it
+                onMarginVerticalChanged(it.roundToInt())
+            },
+        )
+
+        Text(
+            text = "${stringResource(R.string.page_margin_horizontal)}: ${marginHorizontal.roundToInt()}px",
+            color = MaterialTheme.colors.onBackground,
+        )
+        Slider(
+            value = marginHorizontal,
+            valueRange = 0f..100f,
+            steps = 19,
+            onValueChange = {
+                marginHorizontal = it
+                onMarginHorizontalChanged(it.roundToInt())
             },
         )
 
@@ -188,11 +210,13 @@ fun ReaderSettingsContent(
 private fun PreviewReaderSettingsContent() {
     MyTheme {
         ReaderSettingsContent(
-            initPageMargin = 10,
+            initMarginVertical = 10,
+            initMarginHorizontal = 10,
             initLineSpacing = 15,
             initTwoColumn = false,
             initKeepExtraContent = false,
-            onPageMarginChanged = {},
+            onMarginVerticalChanged = {},
+            onMarginHorizontalChanged = {},
             onLineSpacingChanged = {},
             onTwoColumnChanged = {},
             onKeepExtraContentChanged = {},

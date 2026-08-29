@@ -254,6 +254,8 @@
     <string name="reader_mode">Reader mode</string>
     <string name="reader_settings">Reader mode settings</string>
     <string name="page_margin">Page margin</string>
+    <string name="page_margin_vertical">Page margin (top/bottom)</string>
+    <string name="page_margin_horizontal">Page margin (left/right)</string>
     <string name="line_spacing">Line spacing</string>
     <string name="two_column_in_landscape">Two columns in landscape</string>
     <string name="keep_extra_content">Keep extra content</string>
@@ -631,6 +633,15 @@
     <string name="tts_type_system">Built-in</string>
     <string name="toolbar_icons">Toolbar icons</string>
     <string name="toolbar_icons_description">Arrange toolbar icons</string>
+    <string name="setting_title_toolbar_icon_spacing">Icon spacing</string>
+    <string name="setting_summary_toolbar_icon_spacing">Extra gap between toolbar icons, in dp (0-24)</string>
+    <string name="second_toolbar">Second toolbar</string>
+    <string name="setting_title_second_toolbar">Show second toolbar</string>
+    <string name="setting_summary_second_toolbar">Add a second bar on the opposite edge. Top/bottom toolbars only.</string>
+    <string name="second_toolbar_icons">Second toolbar icons</string>
+    <string name="second_toolbar_icons_description">Arrange the icons of the second toolbar</string>
+    <string name="setting_title_page_turn_marker">Page turn marker</string>
+    <string name="setting_summary_page_turn_marker">Draw a dotted line where the previous screen ended</string>
     <string name="gesture_on_floating_button">Floating button gestures</string>
     <string name="openai">OpenAI</string>
     <string name="openai_compatible_server">OpenAI Compatible Server</string>

@@ -10,6 +10,7 @@ import info.plateaukao.einkbro.setting.DividerSettingItem
 import info.plateaukao.einkbro.setting.ListSettingWithEnumItem
 import info.plateaukao.einkbro.setting.SettingItemInterface
 import info.plateaukao.einkbro.setting.ToolbarPositionSettingItem
+import info.plateaukao.einkbro.setting.ValueSettingItem
 
 fun buildToolbarSettingItems(deps: SettingScreenDeps): List<SettingItemInterface> {
     val config = deps.config
@@ -39,6 +40,30 @@ fun buildToolbarSettingItems(deps: SettingScreenDeps): List<SettingItemInterface
             R.string.toolbar_icons_description,
         ) {
             deps.activity.startActivity(Intent(deps.activity, ToolbarConfigActivity::class.java))
+        },
+        ValueSettingItem(
+            R.string.setting_title_toolbar_icon_spacing,
+            0,
+            R.string.setting_summary_toolbar_icon_spacing,
+            config.ui::toolbarIconSpacing,
+            showValue = true,
+        ),
+        BooleanSettingItem(
+            R.string.setting_title_second_toolbar,
+            0,
+            R.string.setting_summary_second_toolbar,
+            config.ui::secondToolbarEnabled,
+        ),
+        ActionSettingItem(
+            R.string.second_toolbar_icons,
+            0,
+            R.string.second_toolbar_icons_description,
+        ) {
+            deps.activity.startActivity(
+                Intent(deps.activity, ToolbarConfigActivity::class.java).putExtra(
+                    ToolbarConfigActivity.EXTRA_IS_SECOND_TOOLBAR, true,
+                )
+            )
         },
         BooleanSettingItem(
             R.string.setting_title_hideToolbar,

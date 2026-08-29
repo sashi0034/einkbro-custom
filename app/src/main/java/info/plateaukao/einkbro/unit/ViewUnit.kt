@@ -276,6 +276,7 @@ object ViewUnit: KoinComponent {
 
 
     fun updateAppbarPosition(binding: MainActivityLayout) {
+        binding.secondAppBarEnabled = config.ui.hasSecondToolbar
         when (config.ui.toolbarPosition) {
             info.plateaukao.einkbro.preference.ToolbarPosition.Top -> moveAppbarToTop(binding)
             info.plateaukao.einkbro.preference.ToolbarPosition.Left -> moveAppbarToLeft(binding)
@@ -345,6 +346,8 @@ object ViewUnit: KoinComponent {
 
             // Horizontal toolbars keep the strip inside the app bar itself.
             setVisibility(binding.sideTabBar.id, View.GONE)
+
+            applySecondAppbar(binding, primaryAtTop = false)
         }
         constraintSet.applyTo(binding.root)
     }
@@ -403,8 +406,50 @@ object ViewUnit: KoinComponent {
 
             // Horizontal toolbars keep the strip inside the app bar itself.
             setVisibility(binding.sideTabBar.id, View.GONE)
+
+            applySecondAppbar(binding, primaryAtTop = true)
         }
         constraintSet.applyTo(binding.root)
+    }
+
+    /**
+     * Pins the optional second toolbar to the edge the primary bar left free and
+     * hangs the content off it. Only the horizontal placements call this: a
+     * vertical toolbar already owns a screen edge, and a second column would eat
+     * the page. Visibility mirrors the primary bar so fullscreen, the url input
+     * and the search panel keep hiding both together.
+     */
+    private fun ConstraintSet.applySecondAppbar(
+        binding: MainActivityLayout,
+        primaryAtTop: Boolean,
+    ) {
+        if (!config.ui.hasSecondToolbar) {
+            setVisibility(binding.appBar2.id, View.GONE)
+            setVisibility(binding.contentSeparator2.id, View.GONE)
+            return
+        }
+        setVisibility(binding.appBar2.id, binding.appBar.visibility)
+        setVisibility(binding.contentSeparator2.id, binding.appBar.visibility)
+
+        clear(binding.appBar2.id, ConstraintSet.TOP)
+        clear(binding.appBar2.id, ConstraintSet.BOTTOM)
+        connect(binding.appBar2.id, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START)
+        connect(binding.appBar2.id, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END)
+
+        clear(binding.contentSeparator2.id, ConstraintSet.TOP)
+        clear(binding.contentSeparator2.id, ConstraintSet.BOTTOM)
+        connect(binding.contentSeparator2.id, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START)
+        connect(binding.contentSeparator2.id, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END)
+
+        if (primaryAtTop) {
+            connect(binding.appBar2.id, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM)
+            connect(binding.twoPanelLayout.id, ConstraintSet.BOTTOM, binding.appBar2.id, ConstraintSet.TOP)
+            connect(binding.contentSeparator2.id, ConstraintSet.BOTTOM, binding.appBar2.id, ConstraintSet.TOP)
+        } else {
+            connect(binding.appBar2.id, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP)
+            connect(binding.twoPanelLayout.id, ConstraintSet.TOP, binding.appBar2.id, ConstraintSet.BOTTOM)
+            connect(binding.contentSeparator2.id, ConstraintSet.TOP, binding.appBar2.id, ConstraintSet.BOTTOM)
+        }
     }
 
     private fun moveAppbarToLeft(binding: MainActivityLayout) {
@@ -430,6 +475,8 @@ object ViewUnit: KoinComponent {
             connect(binding.twoPanelLayout.id, ConstraintSet.START, binding.appBar.id, ConstraintSet.END)
             connect(binding.twoPanelLayout.id, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END)
             connectContentEdges(binding, showTabBar)
+            setVisibility(binding.appBar2.id, View.GONE)
+            setVisibility(binding.contentSeparator2.id, View.GONE)
         }
         constraintSet.applyTo(binding.root)
         setProgressBarVertical(binding, isLeft = true)
@@ -457,6 +504,8 @@ object ViewUnit: KoinComponent {
             connect(binding.twoPanelLayout.id, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START)
             connect(binding.twoPanelLayout.id, ConstraintSet.END, binding.appBar.id, ConstraintSet.START)
             connectContentEdges(binding, showTabBar)
+            setVisibility(binding.appBar2.id, View.GONE)
+            setVisibility(binding.contentSeparator2.id, View.GONE)
         }
         constraintSet.applyTo(binding.root)
         setProgressBarVertical(binding, isLeft = false)

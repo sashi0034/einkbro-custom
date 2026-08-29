@@ -3,6 +3,7 @@ package info.plateaukao.einkbro.view
 import android.view.KeyEvent
 import info.plateaukao.einkbro.preference.ConfigManager
 import info.plateaukao.einkbro.unit.ViewUnit.dp
+import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
@@ -14,6 +15,14 @@ class WebViewNavigationHelper(
     private val config: ConfigManager,
     private val onUpdatePageInfo: (String) -> Unit = {},
 ) {
+    /**
+     * Reports where the pre-turn screen edge ended up, so the caller can mark the
+     * seam. [isVerticalLine] is true when the page scrolls sideways (vertical read
+     * or the two-column reader) and the rule therefore runs down the screen;
+     * [offsetPx] is measured from the top or the left edge of the web view.
+     * A null offset means "no seam to show" — clear any existing mark.
+     */
+    var onPageTurn: (isVerticalLine: Boolean, offsetPx: Float?) -> Unit = { _, _ -> }
 
     fun isAtTop(): Boolean = if (webView.isVerticalRead) {
         currentVerticalPage() <= 0
@@ -43,33 +52,83 @@ class WebViewNavigationHelper(
 
     fun pageDownWithNoAnimation() = if (webView.isVerticalRead) {
         // +x = toward the reading start; callers flip direction in vertical mode.
+        val before = markerScrollPos()
         scrollToVerticalPage(currentVerticalPage() - 1)
+        reportPageTurn(markerScrollPos() - before)
     } else if (webView.isTwoColumnReaderOn) {
         // One "page" is exactly one viewport of two columns (the CSS sizes the
         // margins/gap so pages tile by viewport width). Jump to the computed
         // page boundary instead of scrollBy so sub-pixel layout rounding can't
         // accumulate into visible drift over many page turns.
+        val before = markerScrollPos()
         scrollToTwoColumnPage(currentTwoColumnPage() + 1)
+        reportPageTurn(markerScrollPos() - before)
     } else {
-        jsPageScroll(1) { handled ->
+        val before = webView.scrollY
+        jsPageScroll(1) { handled, movedRatio ->
             if (!handled) {
                 webView.scrollBy(0, shiftOffset())
                 webView.scrollY = min(webView.verticalScrollRange() - shiftOffset(), webView.scrollY)
+                reportPageTurn(webView.scrollY - before)
+            } else {
+                reportPageTurn((movedRatio * markerAxisSize()).roundToInt())
             }
         }
     }
 
     fun pageUpWithNoAnimation() = if (webView.isVerticalRead) {
+        val before = markerScrollPos()
         scrollToVerticalPage(currentVerticalPage() + 1)
+        reportPageTurn(markerScrollPos() - before)
     } else if (webView.isTwoColumnReaderOn) {
+        val before = markerScrollPos()
         scrollToTwoColumnPage(currentTwoColumnPage() - 1)
+        reportPageTurn(markerScrollPos() - before)
     } else {
-        jsPageScroll(-1) { handled ->
+        val before = webView.scrollY
+        jsPageScroll(-1) { handled, movedRatio ->
             if (!handled) {
                 webView.scrollBy(0, -shiftOffset())
                 webView.scrollY = max(0, webView.scrollY)
+                reportPageTurn(webView.scrollY - before)
+            } else {
+                reportPageTurn((movedRatio * markerAxisSize()).roundToInt())
             }
         }
+    }
+
+    // --- Page-turn seam ---------------------------------------------------
+    // A content point sitting at view coordinate v before the turn sits at
+    // v - d afterwards, where d is the signed scroll delta along the scrolled
+    // axis. So a forward turn (d > 0) leaves the old far edge at size - d, and a
+    // backward turn (d < 0) leaves the old near edge at -d. That one rule covers
+    // normal scrolling, vertical-rl (where forward means d < 0) and two columns.
+
+    private fun scrollsSideways(): Boolean =
+        webView.isVerticalRead || webView.isTwoColumnReaderOn
+
+    private fun markerAxisSize(): Int =
+        if (scrollsSideways()) webView.width else webView.height
+
+    private fun markerScrollPos(): Int =
+        if (scrollsSideways()) webView.scrollX else webView.scrollY
+
+    private fun reportPageTurn(delta: Int) {
+        // Turning the setting off mid-session should also take down a line that
+        // is already on screen, so report "no seam" rather than bailing out.
+        if (!config.touch.showPageTurnMarker) {
+            onPageTurn(scrollsSideways(), null)
+            return
+        }
+        val size = markerAxisSize()
+        // Nothing moved, or the turn was a clean full screen with no overlap:
+        // either way there is no seam inside the viewport to mark.
+        if (delta == 0 || size <= 0 || abs(delta) >= size) {
+            onPageTurn(scrollsSideways(), null)
+            return
+        }
+        val offset = if (delta > 0) (size - delta) else -delta
+        onPageTurn(scrollsSideways(), offset.toFloat())
     }
 
     fun sendPageDownKey() = sendKeyEventToView(KeyEvent.KEYCODE_PAGE_DOWN)
@@ -160,14 +219,22 @@ class WebViewNavigationHelper(
         }
     }
 
-    private fun jsPageScroll(direction: Int, fallback: (Boolean) -> Unit) {
+    /**
+     * Runs the in-page scroll helper. [handler] receives whether the page handled
+     * the scroll itself in an inner container and, if so, how far that container
+     * moved as a fraction of its own height (signed, following the direction).
+     */
+    private fun jsPageScroll(direction: Int, handler: (Boolean, Double) -> Unit) {
         val offset = config.touch.pageReservedOffsetInString
         val offsetPercent = if (offset.endsWith('%')) offset.take(offset.length - 1).toInt() else 0
         val offsetPx = if (offset.endsWith('%')) 0 else offset.toInt().dp(webView.context)
         webView.evaluateJavascript(
             "window.__einkbroPageScroll && window.__einkbroPageScroll($direction, ${offsetPercent / 100.0}, $offsetPx)"
         ) { result ->
-            fallback(result?.trim('"') == "true")
+            val text = result?.trim('"').orEmpty()
+            val handled = text.startsWith("true")
+            val movedRatio = text.substringAfter(':', "").toDoubleOrNull() ?: 0.0
+            handler(handled, movedRatio)
         }
     }
 

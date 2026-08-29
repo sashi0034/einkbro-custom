@@ -160,15 +160,26 @@ class ChromeSetupDelegate(
         val cs = androidx.constraintlayout.widget.ConstraintSet().apply { clone(root) }
         val statusBarId = state.binding.statusBar.id
         val twoPanelId = state.binding.twoPanelLayout.id
-        val appBarId = state.binding.appBar.id
         val top = androidx.constraintlayout.widget.ConstraintSet.TOP
         val bottom = androidx.constraintlayout.widget.ConstraintSet.BOTTOM
         val parent = androidx.constraintlayout.widget.ConstraintSet.PARENT_ID
-        // Vertical toolbar: appBar spans full height (TOP & BOTTOM → parent).
-        // Top toolbar: appBar.top pinned to parent.top.
-        // In both cases, anchoring twoPanel.bottom to appBar.top collapses the webview.
-        val isVertical = config.ui.isVerticalToolbar
+
+        // Work out which view, if any, already owns each horizontal edge, then
+        // stack the status bar and the content between them. A vertical toolbar
+        // owns a side rather than an edge, so it leaves both free; a second
+        // toolbar takes whichever edge the first one did not.
         val isToolbarTop = config.ui.toolbarPosition == ToolbarPosition.Top
+        val isVertical = config.ui.isVerticalToolbar
+        val secondBarId = if (config.ui.hasSecondToolbar) state.binding.appBar2.id else null
+        val appBarId = if (isVertical) null else state.binding.appBar.id
+        val topOwnerId = if (isToolbarTop) appBarId else secondBarId
+        val bottomOwnerId = if (isToolbarTop) secondBarId else appBarId
+
+        // Anchor to the inner side of the owning bar, or to the parent edge.
+        val topAnchorId = topOwnerId ?: parent
+        val topAnchorSide = if (topOwnerId != null) bottom else top
+        val bottomAnchorId = bottomOwnerId ?: parent
+        val bottomAnchorSide = if (bottomOwnerId != null) top else bottom
 
         cs.clear(statusBarId, top)
         cs.clear(statusBarId, bottom)
@@ -176,41 +187,15 @@ class ChromeSetupDelegate(
         cs.clear(twoPanelId, bottom)
 
         when (position) {
-            StatusbarPosition.Top -> when {
-                isToolbarTop -> {
-                    // Stack: appBar (top) → statusBar → twoPanel → parent.bottom
-                    cs.connect(statusBarId, top, appBarId, bottom)
-                    cs.connect(twoPanelId, top, statusBarId, bottom)
-                    cs.connect(twoPanelId, bottom, parent, bottom)
-                }
-                isVertical -> {
-                    cs.connect(statusBarId, top, parent, top)
-                    cs.connect(twoPanelId, top, statusBarId, bottom)
-                    cs.connect(twoPanelId, bottom, parent, bottom)
-                }
-                else -> { // horizontal toolbar at Bottom
-                    cs.connect(statusBarId, top, parent, top)
-                    cs.connect(twoPanelId, top, statusBarId, bottom)
-                    cs.connect(twoPanelId, bottom, appBarId, top)
-                }
+            StatusbarPosition.Top -> {
+                cs.connect(statusBarId, top, topAnchorId, topAnchorSide)
+                cs.connect(twoPanelId, top, statusBarId, bottom)
+                cs.connect(twoPanelId, bottom, bottomAnchorId, bottomAnchorSide)
             }
-            StatusbarPosition.Bottom -> when {
-                isToolbarTop -> {
-                    // Stack: appBar (top) → twoPanel → statusBar (bottom)
-                    cs.connect(statusBarId, bottom, parent, bottom)
-                    cs.connect(twoPanelId, top, appBarId, bottom)
-                    cs.connect(twoPanelId, bottom, statusBarId, top)
-                }
-                isVertical -> {
-                    cs.connect(statusBarId, bottom, parent, bottom)
-                    cs.connect(twoPanelId, top, parent, top)
-                    cs.connect(twoPanelId, bottom, statusBarId, top)
-                }
-                else -> { // horizontal toolbar at Bottom
-                    cs.connect(statusBarId, bottom, appBarId, top)
-                    cs.connect(twoPanelId, top, parent, top)
-                    cs.connect(twoPanelId, bottom, statusBarId, top)
-                }
+            StatusbarPosition.Bottom -> {
+                cs.connect(statusBarId, bottom, bottomAnchorId, bottomAnchorSide)
+                cs.connect(twoPanelId, top, topAnchorId, topAnchorSide)
+                cs.connect(twoPanelId, bottom, statusBarId, top)
             }
         }
         cs.applyTo(root)
@@ -343,14 +328,12 @@ class ChromeSetupDelegate(
                 activity.currentFocus is EBWebView
             ) {
                 toolbarHiddenForKeyboard = true
-                binding.appBar.isVisible = false
-                binding.contentSeparator.isVisible = false
+                binding.setAppBarsVisibility(android.view.View.GONE)
                 ViewUnit.updateSideTabBarVisibility(binding)
             }
         } else if (toolbarHiddenForKeyboard) {
             toolbarHiddenForKeyboard = false
-            binding.appBar.isVisible = true
-            binding.contentSeparator.isVisible = true
+            binding.setAppBarsVisibility(VISIBLE)
             ViewUnit.updateSideTabBarVisibility(binding)
         }
     }

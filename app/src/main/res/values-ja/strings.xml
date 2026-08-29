@@ -150,6 +150,8 @@
     <string name="reader_mode">リーダーモード</string>
     <string name="reader_settings">リーダーモード設定</string>
     <string name="page_margin">ページ余白</string>
+    <string name="page_margin_vertical">ページ余白 (上下)</string>
+    <string name="page_margin_horizontal">ページ余白 (左右)</string>
     <string name="line_spacing">行間</string>
     <string name="two_column_in_landscape">横向き時に2段組み</string>
     <string name="keep_extra_content">追加コンテンツを保持</string>
@@ -522,6 +524,15 @@
     <string name="toggle_touch_turn_page">タッチページめくりを切り替え</string>
     <string name="toolbar_icons">ツールバーアイコン</string>
     <string name="toolbar_icons_description">ツールバーアイコンを並べ替え</string>
+    <string name="setting_title_toolbar_icon_spacing">アイコン間隔</string>
+    <string name="setting_summary_toolbar_icon_spacing">ツールバーアイコン間に追加する余白 (dp, 0〜24)</string>
+    <string name="second_toolbar">2段目のツールバー</string>
+    <string name="setting_title_second_toolbar">2段目のツールバーを表示</string>
+    <string name="setting_summary_second_toolbar">反対側の端にもう1本表示します。上下配置のときのみ有効です。</string>
+    <string name="second_toolbar_icons">2段目のツールバーアイコン</string>
+    <string name="second_toolbar_icons_description">2段目のツールバーアイコンを並べ替え</string>
+    <string name="setting_title_page_turn_marker">ページ送り位置の目印</string>
+    <string name="setting_summary_page_turn_marker">送る前の画面末尾に点線を表示します</string>
     <string name="toolbar_time">現在時刻</string>
     <string name="toolbar_title">タイトル</string>
     <string name="touch_aciton_settings">その他の設定</string>

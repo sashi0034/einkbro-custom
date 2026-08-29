@@ -67,12 +67,20 @@
         if (!scrollable) return "false";
 
         var scrollAmount = direction * (scrollable.clientHeight * (1 - offsetPercent) - offsetPx);
+        var before = scrollable.scrollTop;
         scrollable.scrollBy({
             top: scrollAmount,
             left: 0,
             behavior: 'auto'
         });
-        return "true";
+        // Report how far it really moved, as a fraction of the container's own
+        // height: the native side needs it to place the page-turn marker, and a
+        // ratio survives the CSS-px to device-px conversion. Clamping at the
+        // document end makes this smaller than the requested amount.
+        var moved = scrollable.clientHeight > 0
+            ? (scrollable.scrollTop - before) / scrollable.clientHeight
+            : 0;
+        return "true:" + moved;
     };
 
     window.__einkbroScrollToTop = function() {

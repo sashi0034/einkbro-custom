@@ -74,7 +74,18 @@ enum class ToolbarAction(
     Bookmark(imageVector = Icons.Outlined.Bookmarks, titleResId = R.string.bookmarks),
     IconSetting(imageVector = Icons.Outlined.Straighten, titleResId = R.string.toolbars),
     VerticalLayout(imageVector = Icons.Outlined.ViewColumn, titleResId = R.string.vertical_read),
-    ReaderMode(imageVector = Icons.AutoMirrored.Outlined.ChromeReaderMode, titleResId = R.string.reader_mode),
+    ReaderMode(
+        // imageVector stays as the palette/menu artwork; the toolbar itself picks
+        // one of the two drawables below so the icon shows whether reader mode is on.
+        iconResId = R.drawable.ic_reader_mode,
+        imageVector = Icons.AutoMirrored.Outlined.ChromeReaderMode,
+        titleResId = R.string.reader_mode,
+        iconActiveInfo = IconActiveInfo(
+            true,
+            R.drawable.ic_reader_mode_active,
+            R.drawable.ic_reader_mode
+        )
+    ),
     BoldFont(
         iconResId = R.drawable.ic_bold_font,
         titleResId = R.string.bold_font,
@@ -216,6 +227,16 @@ enum class ToolbarAction(
             Bookmark,
             TabCount,
             Settings,
+        )
+        // Seed for the optional second bar: navigation and page turning, the
+        // things worth reaching without scrolling the main bar.
+        val defaultSecondActions: List<ToolbarAction> = listOf(
+            Back,
+            Forward,
+            PageUp,
+            PageDown,
+            Bookmark,
+            Search,
         )
         val defaultReaderActions: List<ToolbarAction> = listOf(
             RotateScreen,

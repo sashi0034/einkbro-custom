@@ -154,7 +154,7 @@ class InputBarDelegate(
             adjustInputUrlForVerticalToolbar()
         } else {
             state.composeToolbarViewController.hide()
-            binding.appBar.visibility = INVISIBLE
+            binding.setAppBarsVisibility(INVISIBLE)
         }
         binding.contentSeparator.visibility = INVISIBLE
         binding.inputUrl.visibility = VISIBLE

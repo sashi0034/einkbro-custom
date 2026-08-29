@@ -34,6 +34,7 @@ class MainContentLayout(
     val touchAreaLeft1: View,
     val touchAreaLeft2: View,
     val touchAreaLeftDrag: View,
+    val pageTurnMarker: PageTurnMarkerView,
     val mainProgressBar: ProgressBar,
     val mainProgressBarVertical: CenterExpandProgressBar,
     val fabImageButtonNav: TextView,
@@ -258,6 +259,15 @@ class MainContentLayout(
                 marginEnd = dpToPx(context, -20)
             })
 
+            // Page-turn seam marker. Added after the touch areas so it paints over
+            // the page, but before the progress bar and the nav button, which stay
+            // on top. It never takes a click listener, so taps fall through to the
+            // views below it.
+            val pageTurnMarker = PageTurnMarkerView(context).apply {
+                id = R.id.page_turn_marker
+            }
+            root.addView(pageTurnMarker, ConstraintLayout.LayoutParams(0, 0))
+
             // Horizontal ProgressBar (used when toolbar is at top/bottom)
             val mainProgressBar = ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal).apply {
                 id = R.id.main_progress_bar
@@ -422,6 +432,12 @@ class MainContentLayout(
             constraintSet.connect(touchAreaLeftDrag.id, ConstraintSet.END, touchAreaLeft1.id, ConstraintSet.END)
             constraintSet.connect(touchAreaLeftDrag.id, ConstraintSet.TOP, touchAreaLeft1.id, ConstraintSet.TOP)
 
+            // page_turn_marker: spans the whole content area
+            constraintSet.connect(pageTurnMarker.id, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP)
+            constraintSet.connect(pageTurnMarker.id, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM)
+            constraintSet.connect(pageTurnMarker.id, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START)
+            constraintSet.connect(pageTurnMarker.id, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END)
+
             // main_progress_bar: start/end to parent, bottom to parent
             constraintSet.connect(mainProgressBar.id, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START)
             constraintSet.connect(mainProgressBar.id, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END)
@@ -468,6 +484,7 @@ class MainContentLayout(
                 touchAreaLeft1 = touchAreaLeft1,
                 touchAreaLeft2 = touchAreaLeft2,
                 touchAreaLeftDrag = touchAreaLeftDrag,
+                pageTurnMarker = pageTurnMarker,
                 mainProgressBar = mainProgressBar,
                 mainProgressBarVertical = mainProgressBarVertical,
                 fabImageButtonNav = fabImageButtonNav,

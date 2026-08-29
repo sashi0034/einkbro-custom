@@ -104,6 +104,7 @@ import info.plateaukao.einkbro.activity.delegates.TtsButtonDelegate
 import info.plateaukao.einkbro.view.handlers.GestureHandler
 import info.plateaukao.einkbro.view.handlers.MenuActionHandler
 import info.plateaukao.einkbro.view.handlers.ToolbarActionHandler
+import info.plateaukao.einkbro.view.toolbaricons.ToolbarAction
 import info.plateaukao.einkbro.view.viewControllers.ComposeToolbarViewController
 import info.plateaukao.einkbro.view.viewControllers.FabImageViewController
 import info.plateaukao.einkbro.view.viewControllers.TwoPaneController
@@ -474,6 +475,7 @@ open class BrowserActivity : FragmentActivity(), BrowserController {
     protected val composeToolbarViewController: ComposeToolbarViewController by lazy {
         ComposeToolbarViewController(
             binding.composeIconBar,
+            binding.composeIconBar2,
             binding.sideTabBar,
             albumViewModel.albums,
             ttsViewModel,
@@ -482,6 +484,7 @@ open class BrowserActivity : FragmentActivity(), BrowserController {
             onTabClick = { it.showOrJumpToTop() },
             onTabLongClick = { it.remove() },
             isAudioOnlyMode = { if (browserState.isWebViewInitialized) ebWebView.isAudioOnlyMode else false },
+            isWebReaderMode = { if (browserState.isWebViewInitialized) ebWebView.isReaderModeOn else false },
         ).also { browserState.composeToolbarViewController = it }
     }
 
@@ -583,7 +586,12 @@ open class BrowserActivity : FragmentActivity(), BrowserController {
     override fun jumpToBottom() = ebWebView.jumpToBottom()
     override fun pageDown() = ebWebView.pageDownWithNoAnimation()
     override fun pageUp() = ebWebView.pageUpWithNoAnimation()
-    override fun toggleReaderMode() = ebWebView.toggleReaderMode()
+    override fun toggleReaderMode() {
+        ebWebView.toggleReaderMode()
+        // isReaderModeOn flips synchronously, but it is not a preference, so the
+        // toolbar icon has to be told to re-read it.
+        composeToolbarViewController.updateIcons(ToolbarAction.ReaderMode)
+    }
     override fun toggleVerticalRead() = ebWebView.toggleVerticalRead()
     override fun toggleAudioOnlyMode() = ebWebView.toggleAudioOnlyMode()
     override fun updatePageInfo(info: String) {
@@ -1123,7 +1131,10 @@ open class BrowserActivity : FragmentActivity(), BrowserController {
         lazyLoad: Boolean = false,
     ) = tabManager.addAlbum(title, url, foreground, incognito, enablePreloadWebView, lazyLoad)
 
-    open fun createebWebView(): EBWebView = EBWebView(this, this).apply { overScrollMode = View.OVER_SCROLL_NEVER }
+    open fun createebWebView(): EBWebView = EBWebView(this, this).apply {
+        overScrollMode = View.OVER_SCROLL_NEVER
+        pageTurnMarker = binding.activityMainContent.pageTurnMarker
+    }
 
     @SuppressLint("InlinedApi")
     open fun dispatchIntent(intent: Intent) = intentDispatchDelegate.dispatchIntent(intent)
@@ -1154,7 +1165,13 @@ open class BrowserActivity : FragmentActivity(), BrowserController {
                 if (!binding.appBar.isVisible && config.ui.statusbarEnabled) statusbarViewController.show()
                 else statusbarViewController.hide()
             }
-            UiConfig.K_TOOLBAR_ICONS_FOR_LARGE, UiConfig.K_TOOLBAR_ICONS -> composeToolbarViewController.updateIcons()
+            UiConfig.K_TOOLBAR_ICONS_FOR_LARGE, UiConfig.K_TOOLBAR_ICONS,
+            UiConfig.K_SECOND_TOOLBAR_ICONS, UiConfig.K_SECOND_TOOLBAR_ICONS_FOR_LARGE,
+            UiConfig.K_TOOLBAR_ICON_SPACING -> composeToolbarViewController.updateIcons()
+            UiConfig.K_SECOND_TOOLBAR_ENABLED -> {
+                composeToolbarViewController.updateIcons()
+                ViewUnit.updateAppbarPosition(binding)
+            }
             TabConfig.K_SHOW_TAB_BAR -> {
                 composeToolbarViewController.showTabbar(config.tab.shouldShowTabBar)
                 // In vertical mode the strip is a separate view outside the app bar, so

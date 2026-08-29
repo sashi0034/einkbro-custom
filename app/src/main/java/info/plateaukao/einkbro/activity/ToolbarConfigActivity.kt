@@ -42,6 +42,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import info.plateaukao.einkbro.preference.ConfigManager
@@ -76,7 +77,12 @@ class ToolbarConfigActivity : LocaleAwareComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val isReaderMode = intent.getBooleanExtra(EXTRA_IS_READER_MODE, false)
-        val iconEnums = if (isReaderMode) config.ui.readerToolbarActions else config.ui.toolbarActions
+        val isSecondToolbar = intent.getBooleanExtra(EXTRA_IS_SECOND_TOOLBAR, false)
+        val iconEnums = when {
+            isReaderMode -> config.ui.readerToolbarActions
+            isSecondToolbar -> config.ui.secondToolbarActions
+            else -> config.ui.toolbarActions
+        }
         val toolbarActionInfoList = iconEnums.toToolbarActionInfoList()
 
         setContent {
@@ -93,7 +99,15 @@ class ToolbarConfigActivity : LocaleAwareComponentActivity() {
                 val topBar: @Composable () -> Unit = {
                     TopAppBar(
                         title = {
-                            Text(text = stringResource(id = if (isReaderMode) R.string.reader_toolbar else R.string.toolbars))
+                            Text(
+                                text = stringResource(
+                                    id = when {
+                                        isReaderMode -> R.string.reader_toolbar
+                                        isSecondToolbar -> R.string.second_toolbar
+                                        else -> R.string.toolbars
+                                    }
+                                )
+                            )
                         },
                         navigationIcon = {
                             IconButton(onClick = { finish() }) {
@@ -105,10 +119,11 @@ class ToolbarConfigActivity : LocaleAwareComponentActivity() {
                                 Icon(Icons.Filled.Close, contentDescription = null)
                             }
                             IconButton(onClick = {
-                                if (isReaderMode) {
-                                    config.ui.readerToolbarActions = list.value.map { it.toolbarAction }
-                                } else {
-                                    config.ui.toolbarActions = list.value.map { it.toolbarAction }
+                                val actions = list.value.map { it.toolbarAction }
+                                when {
+                                    isReaderMode -> config.ui.readerToolbarActions = actions
+                                    isSecondToolbar -> config.ui.secondToolbarActions = actions
+                                    else -> config.ui.toolbarActions = actions
                                 }
                                 finish()
                             }) {
@@ -125,8 +140,13 @@ class ToolbarConfigActivity : LocaleAwareComponentActivity() {
                 Box(Modifier.scaffoldEdgeToEdgePadding()) {
                     ToolbarConfigPanel(
                         list = list,
-                        isVerticalPreview = config.ui.isVerticalToolbar,
+                        isVerticalPreview = config.ui.isVerticalToolbar && !isSecondToolbar,
                         isPreviewOnRight = config.ui.toolbarPosition == ToolbarPosition.Right,
+                        iconSpacing = config.ui.toolbarIconSpacing.dp,
+                        // Settings is the escape hatch out of a mis-configured
+                        // toolbar, so it can't be removed — but only the bar that
+                        // is always present has to keep it.
+                        keepSettingsAction = !isSecondToolbar,
                         topBar = topBar,
                     )
                 }
@@ -148,6 +168,7 @@ class ToolbarConfigActivity : LocaleAwareComponentActivity() {
 
     companion object {
         const val EXTRA_IS_READER_MODE = "extra_is_reader_mode"
+        const val EXTRA_IS_SECOND_TOOLBAR = "extra_is_second_toolbar"
     }
 }
 
@@ -157,6 +178,8 @@ fun ToolbarConfigPanel(
     list: MutableState<List<ToolbarActionInfo>>,
     isVerticalPreview: Boolean = false,
     isPreviewOnRight: Boolean = false,
+    iconSpacing: Dp = 0.dp,
+    keepSettingsAction: Boolean = true,
     topBar: @Composable () -> Unit = {},
 ) {
     val isLandscape = ViewUnit.isLandscape(LocalContext.current)
@@ -177,7 +200,7 @@ fun ToolbarConfigPanel(
     }
 
     val onRemoveAction: (ToolbarAction) -> Unit = { action ->
-        if (action != ToolbarAction.Settings) {
+        if (action != ToolbarAction.Settings || !keepSettingsAction) {
             list.value = list.value.toMutableList().apply {
                 val info = find { it.toolbarAction == action }
                 remove(info)
@@ -200,6 +223,7 @@ fun ToolbarConfigPanel(
                     pageInfo = "4/21",
                     onClick = onRemoveAction,
                     highlightedAction = highlightedAction,
+                    iconSpacing = iconSpacing,
                 )
             }
         }
@@ -250,7 +274,9 @@ fun ToolbarConfigPanel(
     } else {
         Column(modifier = Modifier.fillMaxSize()) {
             topBar()
-            HorizontalConfigContent(list, isLandscape, onAddAction, onRemoveAction, highlightedAction)
+            HorizontalConfigContent(
+                list, isLandscape, onAddAction, onRemoveAction, highlightedAction, iconSpacing,
+            )
         }
     }
 }
@@ -263,6 +289,7 @@ private fun HorizontalConfigContent(
     onAddAction: (ToolbarActionInfo) -> Unit,
     onRemoveAction: (ToolbarAction) -> Unit,
     highlightedAction: ToolbarAction?,
+    iconSpacing: Dp,
 ) {
     Column(
         modifier = Modifier
@@ -349,6 +376,7 @@ private fun HorizontalConfigContent(
                     pageInfo = "4/21",
                     onClick = onRemoveAction,
                     highlightedAction = highlightedAction,
+                    iconSpacing = iconSpacing,
                 )
             }
         }

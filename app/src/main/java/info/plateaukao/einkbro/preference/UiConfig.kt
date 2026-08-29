@@ -27,6 +27,17 @@ class UiConfig(private val context: Context, private val sp: SharedPreferences) 
     val isVerticalToolbar: Boolean
         get() = toolbarPosition == ToolbarPosition.Left || toolbarPosition == ToolbarPosition.Right
 
+    /**
+     * Extra gap in dp inserted between toolbar icons. The 46dp icon slots abut by
+     * default, which is hard to hit accurately on a low-refresh e-ink panel.
+     * Clamped on read so a bad hand-edited value can't push every icon off the bar.
+     */
+    var toolbarIconSpacing: Int
+        get() = sp.getInt(K_TOOLBAR_ICON_SPACING, 0).coerceIn(0, MAX_TOOLBAR_ICON_SPACING)
+        set(value) = sp.edit {
+            putInt(K_TOOLBAR_ICON_SPACING, value.coerceIn(0, MAX_TOOLBAR_ICON_SPACING))
+        }
+
     var statusbarEnabled by BooleanPreference(sp, K_STATUSBAR_ENABLED, false)
 
     var statusbarPosition: StatusbarPosition
@@ -113,6 +124,40 @@ class UiConfig(private val context: Context, private val sp: SharedPreferences) 
             }
         }
 
+    /**
+     * Whether a second toolbar is shown on the edge opposite [toolbarPosition].
+     * Only meaningful for the horizontal positions: the vertical toolbar already
+     * owns a whole screen edge, and a second column would eat the page.
+     */
+    var secondToolbarEnabled by BooleanPreference(sp, K_SECOND_TOOLBAR_ENABLED, false)
+
+    /** True when a second bar should actually be laid out right now. */
+    val hasSecondToolbar: Boolean
+        get() = secondToolbarEnabled && !isVerticalToolbar
+
+    /** The edge the second bar occupies: always the one the first bar is not on. */
+    val secondToolbarPosition: ToolbarPosition
+        get() = if (toolbarPosition == ToolbarPosition.Top) ToolbarPosition.Bottom
+        else ToolbarPosition.Top
+
+    var secondToolbarActions: List<ToolbarAction>
+        get() {
+            val key =
+                if (shouldUseLargeToolbarConfig) K_SECOND_TOOLBAR_ICONS_FOR_LARGE
+                else K_SECOND_TOOLBAR_ICONS
+            val iconListString = sp.getString(key, sp.getString(K_SECOND_TOOLBAR_ICONS, null))
+            if (iconListString == null) return ToolbarAction.defaultSecondActions
+            return iconStringToEnumList(iconListString)
+        }
+        set(value) {
+            sp.edit {
+                val key =
+                    if (shouldUseLargeToolbarConfig) K_SECOND_TOOLBAR_ICONS_FOR_LARGE
+                    else K_SECOND_TOOLBAR_ICONS
+                putString(key, value.map { it.ordinal }.joinToString(","))
+            }
+        }
+
     var readerToolbarActions: List<ToolbarAction>
         get() {
             val iconListString =
@@ -161,6 +206,11 @@ class UiConfig(private val context: Context, private val sp: SharedPreferences) 
         const val K_TOOLBAR_ICONS = "sp_toolbar_icons"
         const val K_TOOLBAR_ICONS_FOR_LARGE = "sp_toolbar_icons_for_large"
         const val K_READER_TOOLBAR_ICONS = "sp_reader_toolbar_icons"
+        const val K_TOOLBAR_ICON_SPACING = "sp_toolbar_icon_spacing"
+        const val K_SECOND_TOOLBAR_ENABLED = "sp_second_toolbar_enabled"
+        const val K_SECOND_TOOLBAR_ICONS = "sp_second_toolbar_icons"
+        const val K_SECOND_TOOLBAR_ICONS_FOR_LARGE = "sp_second_toolbar_icons_for_large"
+        const val MAX_TOOLBAR_ICON_SPACING = 24
         const val K_STATUSBAR_ENABLED = "sp_statusbar_enabled"
         const val K_STATUSBAR_POSITION = "sp_statusbar_position"
         const val K_STATUSBAR_ITEMS = "sp_statusbar_items"

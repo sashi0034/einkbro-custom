@@ -11,16 +11,39 @@ import info.plateaukao.einkbro.R
 class MainActivityLayout(
     val root: ConstraintLayout,
     val appBar: FrameLayout,
+    val appBar2: FrameLayout,
     val composeIconBar: ComposeView,
+    val composeIconBar2: ComposeView,
     val mainSearchPanel: ComposeView,
     val twoPanelLayout: TwoPaneLayout,
     val activityMainContent: MainContentLayout,
     val inputUrl: ComposeView,
     val contentSeparator: View,
+    val contentSeparator2: View,
     val layoutOverview: ComposeView,
     val statusBar: ComposeView,
     val sideTabBar: ComposeView,
 ) {
+    /**
+     * Whether the second toolbar is currently part of the layout. Owned by
+     * ViewUnit.updateAppbarPosition, which is the only place that decides it;
+     * [setAppBarsVisibility] reads it so callers don't each need the config.
+     */
+    var secondAppBarEnabled: Boolean = false
+
+    /**
+     * Shows or hides the whole toolbar area at once. Callers that hide the chrome
+     * (fullscreen, the url input, the search panel) mean "the toolbars", not "the
+     * first toolbar" — and the second bar has to stay gone while it is switched off.
+     */
+    fun setAppBarsVisibility(visibility: Int) {
+        appBar.visibility = visibility
+        contentSeparator.visibility = visibility
+        val secondVisibility = if (secondAppBarEnabled) visibility else View.GONE
+        appBar2.visibility = secondVisibility
+        contentSeparator2.visibility = secondVisibility
+    }
+
     companion object {
         fun create(context: Context): MainActivityLayout {
             val root = ConstraintLayout(context).apply {
@@ -62,6 +85,27 @@ class MainActivityLayout(
 
             root.addView(appBar)
 
+            // Optional second bar, on the edge opposite the first one. GONE until
+            // ViewUnit.updateAppbarPosition decides it applies; the URL input and
+            // the search panel stay with the primary bar.
+            val appBar2 = FrameLayout(context).apply {
+                id = R.id.app_bar_2
+                layoutParams = ConstraintLayout.LayoutParams(
+                    ConstraintLayout.LayoutParams.MATCH_PARENT,
+                    ConstraintLayout.LayoutParams.WRAP_CONTENT
+                )
+                visibility = View.GONE
+            }
+            val composeIconBar2 = ComposeView(context).apply {
+                id = R.id.compose_icon_bar_2
+                layoutParams = FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+            appBar2.addView(composeIconBar2)
+            root.addView(appBar2)
+
             // TwoPaneLayout
             val twoPanelLayout = TwoPaneLayout(context).apply {
                 id = R.id.two_panel_layout
@@ -95,6 +139,16 @@ class MainActivityLayout(
                 setBackgroundColor(android.graphics.Color.DKGRAY)
             }
             root.addView(contentSeparator)
+
+            val contentSeparator2 = View(context).apply {
+                id = R.id.content_separator_2
+                layoutParams = ConstraintLayout.LayoutParams(
+                    ConstraintLayout.LayoutParams.MATCH_PARENT, 1
+                )
+                setBackgroundColor(android.graphics.Color.DKGRAY)
+                visibility = View.GONE
+            }
+            root.addView(contentSeparator2)
 
             // layoutOverview ComposeView
             val layoutOverview = ComposeView(context).apply {
@@ -136,6 +190,12 @@ class MainActivityLayout(
             // appBar: bottom to parent bottom
             constraintSet.connect(appBar.id, ConstraintSet.BOTTOM, ConstraintSet.PARENT_ID, ConstraintSet.BOTTOM)
 
+            // appBar2: opposite edge by default; re-pinned at runtime.
+            constraintSet.connect(appBar2.id, ConstraintSet.TOP, ConstraintSet.PARENT_ID, ConstraintSet.TOP)
+            constraintSet.connect(appBar2.id, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START)
+            constraintSet.connect(appBar2.id, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END)
+            constraintSet.connect(contentSeparator2.id, ConstraintSet.TOP, appBar2.id, ConstraintSet.BOTTOM)
+
             // twoPanelLayout: start/end to parent, top to parent, bottom to appBar top
             constraintSet.connect(twoPanelLayout.id, ConstraintSet.START, ConstraintSet.PARENT_ID, ConstraintSet.START)
             constraintSet.connect(twoPanelLayout.id, ConstraintSet.END, ConstraintSet.PARENT_ID, ConstraintSet.END)
@@ -173,12 +233,15 @@ class MainActivityLayout(
             return MainActivityLayout(
                 root = root,
                 appBar = appBar,
+                appBar2 = appBar2,
                 composeIconBar = composeIconBar,
+                composeIconBar2 = composeIconBar2,
                 mainSearchPanel = mainSearchPanel,
                 twoPanelLayout = twoPanelLayout,
                 activityMainContent = mainContentLayout,
                 inputUrl = inputUrl,
                 contentSeparator = contentSeparator,
+                contentSeparator2 = contentSeparator2,
                 layoutOverview = layoutOverview,
                 statusBar = statusBar,
                 sideTabBar = sideTabBar,

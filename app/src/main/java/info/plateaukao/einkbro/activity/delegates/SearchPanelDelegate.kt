@@ -61,8 +61,7 @@ class SearchPanelDelegate(
             focusRequester.requestFocus()
             ViewUnit.showKeyboard(activity)
         }
-        binding.appBar.visibility = VISIBLE
-        binding.contentSeparator.visibility = VISIBLE
+        binding.setAppBarsVisibility(VISIBLE)
         ViewUnit.showKeyboard(activity)
     }
 

@@ -63,6 +63,13 @@ fun buildGestureSettingItems(deps: SettingScreenDeps): List<SettingItemInterface
             config.touch::volumeDoubleClickBack,
             span = 2,
         ),
+        BooleanSettingItem(
+            R.string.setting_title_page_turn_marker,
+            0,
+            R.string.setting_summary_page_turn_marker,
+            config.touch::showPageTurnMarker,
+            span = 2,
+        ),
         DividerSettingItem(R.string.setting_multitouch_use_title),
         BooleanSettingItem(
             R.string.setting_multitouch_use_title,

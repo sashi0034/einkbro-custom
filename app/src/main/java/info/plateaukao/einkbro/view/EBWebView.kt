@@ -100,6 +100,27 @@ open class EBWebView(
     val navigationHelper = WebViewNavigationHelper(this, config) { info ->
         (webViewCallback as? InputController)?.updatePageInfo(info)
     }
+
+    /**
+     * Overlay that marks where the previous screen ended after a page turn.
+     * Set by whoever builds the web view, since the marker belongs to the
+     * activity's content layout rather than to any single tab.
+     */
+    var pageTurnMarker: PageTurnMarkerView? = null
+        set(value) {
+            field = value
+            navigationHelper.onPageTurn = { isVerticalLine, offsetPx ->
+                if (offsetPx == null) {
+                    value?.clear()
+                } else {
+                    value?.show(
+                        if (isVerticalLine) PageTurnMarkerView.Axis.Vertical
+                        else PageTurnMarkerView.Axis.Horizontal,
+                        offsetPx,
+                    )
+                }
+            }
+        }
     private val configApplier = WebViewConfigApplier(this, config)
     private val touchSimulator = WebViewTouchSimulator(this)
 
@@ -288,6 +309,9 @@ open class EBWebView(
     fun updateReaderSettingsStyle() = readerHelper.updateReaderSettingsStyle()
 
     private fun resetState(partial: Boolean = false) {
+        // The seam belongs to the outgoing document; a new page has no history
+        // of where the last screen ended.
+        pageTurnMarker?.clear()
         errorPageUrl = null
         dualCaption = null
         isTranslatePage = false

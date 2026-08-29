@@ -18,4 +18,8 @@
     <item name="layout_overview" type="id" />
     <item name="status_bar" type="id" />
     <item name="side_tab_bar" type="id" />
+    <item name="page_turn_marker" type="id" />
+    <item name="app_bar_2" type="id" />
+    <item name="compose_icon_bar_2" type="id" />
+    <item name="content_separator_2" type="id" />
 </resources>

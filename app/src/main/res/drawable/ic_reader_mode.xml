@@ -1,0 +1,21 @@
+<!-- Reader mode, off. Outlined card so it reads as "not applied"; the active
+     twin (ic_reader_mode_active) inverts the same silhouette, which is the only
+     contrast that survives on a greyscale e-ink panel. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:autoMirrored="true"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?android:attr/colorControlNormal">
+    <path
+        android:fillColor="@android:color/white"
+        android:fillType="evenOdd"
+        android:pathData="M3,4h18a2,2 0 0 1 2,2v12a2,2 0 0 1 -2,2h-18a2,2 0 0 1 -2,-2v-12a2,2 0 0 1 2,-2zM3.5,5.5h17a0.5,0.5 0 0 1 0.5,0.5v12a0.5,0.5 0 0 1 -0.5,0.5h-17a0.5,0.5 0 0 1 -0.5,-0.5v-12a0.5,0.5 0 0 1 0.5,-0.5z" />
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M4.5,8h6.5v8h-6.5z" />
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M12.5,8.3h7v1.4h-7zM12.5,11.3h7v1.4h-7zM12.5,14.3h7v1.4h-7z" />
+</vector>

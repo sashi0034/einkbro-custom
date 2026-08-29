@@ -1,0 +1,15 @@
+<!-- Reader mode, on. The inverse of ic_reader_mode: a solid card with the page
+     and text lines knocked out, so the toggle state is obvious at a glance on a
+     greyscale e-ink panel. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:autoMirrored="true"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?android:attr/colorControlNormal">
+    <path
+        android:fillColor="@android:color/white"
+        android:fillType="evenOdd"
+        android:pathData="M3,4h18a2,2 0 0 1 2,2v12a2,2 0 0 1 -2,2h-18a2,2 0 0 1 -2,-2v-12a2,2 0 0 1 2,-2zM4.5,8h6.5v8h-6.5zM12.5,8.3h7v1.4h-7zM12.5,11.3h7v1.4h-7zM12.5,14.3h7v1.4h-7z" />
+</vector>

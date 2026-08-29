@@ -147,20 +147,22 @@ class WebViewReaderHelper(
     fun updateReaderSettingsStyle() {
         if (!isReaderModeOn) return
 
-        val padding = config.display.paddingForReaderMode
+        val paddingV = config.display.readerPaddingVertical
+        val paddingH = config.display.readerPaddingHorizontal
         val lineHeight = String.format(Locale.ROOT, "%.1f", config.display.readerLineSpacing / 10.0)
         val twoColumn = !isVerticalRead && config.display.readerTwoColumnInLandscape
         val css = StringBuilder()
-        css.append("body.mozac-readerview-body { padding: ${padding}px !important; }\n")
+        css.append("body.mozac-readerview-body { padding: ${paddingV}px ${paddingH}px !important; }\n")
         css.append(
             ".mozac-readerview-body .mozac-readerview-content p, " +
                     ".mozac-readerview-body .mozac-readerview-content li " +
                     "{ line-height: $lineHeight !important; }\n"
         )
         if (twoColumn) {
-            // margin 0 (killing the 8px UA default) + column-gap = 2 * padding
-            // make each two-column "page" exactly one viewport wide, so page
-            // turns can jump by webView.width without drifting.
+            // margin 0 (killing the 8px UA default) + column-gap = 2 * the
+            // horizontal padding make each two-column "page" exactly one
+            // viewport wide, so page turns can jump by webView.width without
+            // drifting.
             css.append(
                 """
                 @media screen and (orientation: landscape) {
@@ -171,7 +173,7 @@ class WebViewReaderHelper(
                     overflow-x: auto;
                     overflow-y: hidden;
                     column-count: 2;
-                    column-gap: ${padding * 2}px;
+                    column-gap: ${paddingH * 2}px;
                     column-fill: auto;
                   }
                 }

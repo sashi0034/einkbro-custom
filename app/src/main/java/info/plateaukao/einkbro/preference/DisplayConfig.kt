@@ -175,7 +175,18 @@ class DisplayConfig(private val sp: SharedPreferences) {
     var zoomInCustomView by BooleanPreference(sp, "sp_zoom_in_custom_view", false)
     var readerKeepExtraContent by BooleanPreference(sp, "sp_reader_keep_extra_content", false)
 
-    var paddingForReaderMode by IntPreference(sp, K_PADDING_FOR_READER_MODE, 10)
+    // Reader page margin, split per axis. Both fall back to the single
+    // pre-split value so an upgrade keeps the margin the user already had;
+    // writing either axis stops that fallback for that axis only.
+    var readerPaddingVertical: Int
+        get() = sp.getInt(K_READER_PADDING_VERTICAL, legacyReaderPadding())
+        set(value) = sp.edit { putInt(K_READER_PADDING_VERTICAL, value) }
+
+    var readerPaddingHorizontal: Int
+        get() = sp.getInt(K_READER_PADDING_HORIZONTAL, legacyReaderPadding())
+        set(value) = sp.edit { putInt(K_READER_PADDING_HORIZONTAL, value) }
+
+    private fun legacyReaderPadding(): Int = sp.getInt(K_PADDING_FOR_READER_MODE, 10)
 
     // Line spacing (CSS line-height) in tenths: 15 -> 1.5
     var readerLineSpacing by IntPreference(sp, K_READER_LINE_SPACING, 15)
@@ -216,6 +227,8 @@ class DisplayConfig(private val sp: SharedPreferences) {
         const val K_ENABLE_ZOOM = "sp_enable_zoom"
         const val K_ENABLE_ZOOM_TEXT_WRAP_REFLOW = "sp_enable_zoom_text_wrap_reflow"
         private const val K_PADDING_FOR_READER_MODE = "sp_padding_for_reader_mode"
+        private const val K_READER_PADDING_VERTICAL = "sp_reader_padding_vertical"
+        private const val K_READER_PADDING_HORIZONTAL = "sp_reader_padding_horizontal"
         private const val K_READER_LINE_SPACING = "sp_reader_line_spacing"
         private const val K_READER_TWO_COLUMN_LANDSCAPE = "sp_reader_two_column_landscape"
     }

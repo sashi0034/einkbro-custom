@@ -7,8 +7,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.unit.dp
 import info.plateaukao.einkbro.preference.ConfigManager
 import info.plateaukao.einkbro.view.Album
+import info.plateaukao.einkbro.view.compose.ComposedIconBar
 import info.plateaukao.einkbro.view.compose.ComposedSideTabBar
 import info.plateaukao.einkbro.view.compose.ComposedToolbar
 import info.plateaukao.einkbro.view.compose.MyTheme
@@ -17,6 +19,7 @@ import info.plateaukao.einkbro.view.toolbaricons.ToolbarAction.AudioOnly
 import info.plateaukao.einkbro.view.toolbaricons.ToolbarAction.BoldFont
 import info.plateaukao.einkbro.view.toolbaricons.ToolbarAction.Desktop
 import info.plateaukao.einkbro.view.toolbaricons.ToolbarAction.PageInfo
+import info.plateaukao.einkbro.view.toolbaricons.ToolbarAction.ReaderMode
 import info.plateaukao.einkbro.view.toolbaricons.ToolbarAction.Refresh
 import info.plateaukao.einkbro.view.toolbaricons.ToolbarAction.Touch
 import info.plateaukao.einkbro.view.toolbaricons.ToolbarAction.TouchDirectionLeftRight
@@ -29,6 +32,7 @@ import org.koin.core.component.inject
 
 class ComposeToolbarViewController(
     private val composeView: ComposeView,
+    private val secondComposeView: ComposeView,
     private val sideTabBarView: ComposeView,
     private val albums: MutableState<List<Album>>,
     private val ttsViewModel: TtsViewModel,
@@ -37,6 +41,9 @@ class ComposeToolbarViewController(
     onTabClick: (Album) -> Unit,
     onTabLongClick: (Album) -> Unit,
     private val isAudioOnlyMode: () -> Boolean = { false },
+    // Web reader mode lives on the current EBWebView, not in preferences, so the
+    // truth has to be pulled on every rebuild rather than observed.
+    private val isWebReaderMode: () -> Boolean = { false },
 ) : KoinComponent {
     private val config: ConfigManager by inject()
 
@@ -47,6 +54,7 @@ class ComposeToolbarViewController(
 
     // State previously held by ToolbarComposeView
     var toolbarActionInfoList: List<ToolbarActionInfo> by mutableStateOf(emptyList())
+    var secondToolbarActionInfoList: List<ToolbarActionInfo> by mutableStateOf(emptyList())
     var shouldShowTabs by mutableStateOf(false)
     var title by mutableStateOf("")
     var tabCount by mutableStateOf("")
@@ -55,6 +63,7 @@ class ComposeToolbarViewController(
     var isVertical by mutableStateOf(config.ui.isVerticalToolbar)
     var isToolbarOnRight by mutableStateOf(config.ui.toolbarPosition == info.plateaukao.einkbro.preference.ToolbarPosition.Right)
     var isSideTabBarOnTop by mutableStateOf(config.tab.sideTabBarOnTop)
+    var iconSpacing by mutableStateOf(config.ui.toolbarIconSpacing.dp)
     var albumFocusIndex = mutableStateOf(0)
 
     private val onTabClick: (Album) -> Unit = onTabClick
@@ -66,6 +75,7 @@ class ComposeToolbarViewController(
     init {
         val iconEnums = if (isReader) config.ui.readerToolbarActions else config.ui.toolbarActions
         toolbarActionInfoList = iconEnums.toToolbarActionInfoList()
+        secondToolbarActionInfoList = currentSecondActions().toToolbarActionInfoList()
         hasPageInfoIcon = iconEnums.contains(PageInfo)
         shouldShowTabs = config.tab.shouldShowTabBar
 
@@ -80,12 +90,31 @@ class ComposeToolbarViewController(
                     isIncognito = isIncognito,
                     isVertical = isVertical,
                     isToolbarOnRight = isToolbarOnRight,
+                    iconSpacing = iconSpacing,
                     onIconClick = onIconClick,
                     onIconLongClick = onIconLongClick,
                     albumList = albums,
                     albumFocusIndex = albumFocusIndex,
                     onAlbumClick = this.onTabClick,
                     onAlbumLongClick = this.onTabLongClick,
+                )
+            }
+        }
+
+        // The second bar is an icon row only: the tab strip, the url input and the
+        // search panel all belong to the primary bar.
+        secondComposeView.setContent {
+            MyTheme {
+                ComposedIconBar(
+                    toolbarActionInfos = secondToolbarActionInfoList,
+                    title = title,
+                    tabCount = tabCount,
+                    pageInfo = pageInfo,
+                    isIncognito = isIncognito,
+                    isVertical = false,
+                    iconSpacing = iconSpacing,
+                    onClick = onIconClick,
+                    onLongClick = onIconLongClick,
                 )
             }
         }
@@ -142,17 +171,30 @@ class ComposeToolbarViewController(
     fun updateIcons(actionToUpdate: ToolbarAction? = null) {
         val iconEnums = if (isReader) config.ui.readerToolbarActions else config.ui.toolbarActions
         // only update specific icon is specified.
-        if (actionToUpdate != null && !iconEnums.contains(actionToUpdate)) {
+        if (actionToUpdate != null &&
+            !iconEnums.contains(actionToUpdate) &&
+            !currentSecondActions().contains(actionToUpdate)
+        ) {
             return
         }
 
         toolbarActionInfoList = iconEnums.toToolbarActionInfoList()
+        secondToolbarActionInfoList = currentSecondActions().toToolbarActionInfoList()
         hasPageInfoIcon = iconEnums.contains(PageInfo)
         isIncognito = config.isIncognitoMode
         isVertical = config.ui.isVerticalToolbar
         isToolbarOnRight = config.ui.toolbarPosition == info.plateaukao.einkbro.preference.ToolbarPosition.Right
         isSideTabBarOnTop = config.tab.sideTabBarOnTop
+        iconSpacing = config.ui.toolbarIconSpacing.dp
     }
+
+    /**
+     * Actions for the second bar. The epub reader swaps the whole toolbar for its
+     * own action set, so it keeps a single bar.
+     */
+    private fun currentSecondActions(): List<ToolbarAction> =
+        if (isReader || !config.ui.hasSecondToolbar) emptyList()
+        else config.ui.secondToolbarActions
 
     private fun List<ToolbarAction>.toToolbarActionInfoList(): List<ToolbarActionInfo> {
         return this.map { toolbarAction ->
@@ -173,13 +215,16 @@ class ComposeToolbarViewController(
 
                 Tts -> ToolbarActionInfo(toolbarAction, ttsViewModel.isReading())
                 AudioOnly -> ToolbarActionInfo(toolbarAction, isAudioOnlyMode())
+                ReaderMode -> ToolbarActionInfo(toolbarAction, isWebReaderMode())
                 else -> ToolbarActionInfo(toolbarAction, false)
             }
         }
     }
 
     private fun toggleIconsOnOmnibox(shouldShow: Boolean) {
-        composeView.visibility = if (shouldShow) VISIBLE else INVISIBLE
+        val visibility = if (shouldShow) VISIBLE else INVISIBLE
+        composeView.visibility = visibility
+        secondComposeView.visibility = visibility
     }
 
     fun updateTitle(title: String) {
