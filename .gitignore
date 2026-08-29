@@ -30,3 +30,4 @@ tools/reports/
 adblock-client/.cxx
 
 .claude/
+AGENTS.override.md

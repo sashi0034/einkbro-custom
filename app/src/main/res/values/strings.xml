@@ -2,6 +2,7 @@
 
 <resources>
     <!-- App -->
+    <string name="launcher_name" translatable="false">EinkBro Custom</string>
     <string name="app_name">EinkBro</string>
     <string name="list_empty">Current list is empty.</string>
     <string name="bookmarks">Bookmarks</string>
