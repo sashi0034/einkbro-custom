@@ -20,6 +20,7 @@
 
     <string name="menu_quit">ᱵᱟᱹᱜᱤ</string>
     <string name="menu_openFav">ᱠᱩᱥᱤᱭᱟᱜ ᱡᱷᱤᱡᱽ ᱢᱮ</string>
+    <string name="menu_openFav_newTab">ᱠᱩᱥᱤᱭᱟᱜ ᱫᱚ ᱱᱟᱶᱟ ᱴᱮᱵᱽ ᱨᱮ ᱡᱷᱤᱡᱽ ᱢᱮ</string>
     <string name="menu_delete">ᱢᱮᱴᱟᱣ ᱢᱮ</string>
     <string name="menu_edit">ᱥᱟᱯᱲᱟᱣ</string>
     <string name="menu_closeTab">ᱴᱮᱵᱽ ᱵᱚᱸᱫᱚᱭ ᱢᱮ</string>

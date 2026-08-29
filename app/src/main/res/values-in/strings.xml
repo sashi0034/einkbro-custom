@@ -20,6 +20,7 @@
 
     <string name="menu_quit">Keluar</string>
     <string name="menu_openFav">Buka Beranda</string>
+    <string name="menu_openFav_newTab">Buka Beranda di tab baru</string>
     <string name="menu_delete">Hapus</string>
     <string name="menu_edit">Edit</string>
     <string name="menu_closeTab">Tutup tab</string>

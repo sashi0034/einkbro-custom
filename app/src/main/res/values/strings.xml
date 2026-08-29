@@ -19,6 +19,7 @@
 
     <string name="menu_quit">Quit</string>
     <string name="menu_openFav">Open homepage</string>
+    <string name="menu_openFav_newTab">Open homepage in new tab</string>
     <string name="menu_delete">Delete</string>
     <string name="menu_edit">Edit</string>
     <string name="menu_closeTab">Close tab</string>

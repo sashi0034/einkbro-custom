@@ -15,6 +15,7 @@
     <string name="menu_open_with">Otwórz link zewnętrznie</string>
     <string name="menu_quit">Wyjdź</string>
     <string name="menu_openFav">Open Favorite</string>
+    <string name="menu_openFav_newTab">Otwórz ulubione w nowej karcie</string>
     <string name="menu_delete">Usuń</string>
     <string name="menu_edit">Dostosuj</string>
     <string name="menu_closeTab">Zamknij kartę</string>

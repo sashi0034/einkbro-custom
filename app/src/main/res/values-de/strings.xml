@@ -15,6 +15,7 @@
     <string name="menu_open_with">Link öffnen mit …</string>
     <string name="menu_quit">Beenden</string>
     <string name="menu_openFav">Favorit öffnen</string>
+    <string name="menu_openFav_newTab">Favorit in neuem Tab öffnen</string>
     <string name="menu_delete">Löschen</string>
     <string name="menu_edit">Bearbeiten</string>
     <string name="menu_closeTab">Tab schließen</string>

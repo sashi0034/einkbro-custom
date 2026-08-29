@@ -190,6 +190,25 @@ screens without changing either package ID or its saved data.
 
 File: `src/releaseAlt/res/values/strings.xml` (new).
 
+## 8. "Open favorite in new tab" toolbar icon
+
+Upstream only offers *Open homepage* (`menu_openFav`, "お気に入り開く") from the
+menu dialog, and it replaces the current tab. The same destination is now also
+available as a toolbar icon that opens the favorite URL in a **new** tab, so it
+can be reached in one tap without losing the page being read.
+
+- **Toolbar action**: `ToolbarAction.OpenFavInNewTab` (home icon), added in
+  Settings → Toolbar → toolbar icon configuration
+- **Label**: `menu_openFav_newTab` — "Open homepage in new tab" /
+  "新規タブでお気に入り開く"
+- Dispatches `BrowserAction.AddNewTab(config.favoriteUrl)`, unlike the menu item
+  which dispatches `UpdateAlbum` on the current tab.
+- The enum entry is appended last: toolbar configs persist ordinals, so existing
+  toolbar layouts are untouched.
+
+Files: `view/toolbaricons/ToolbarAction.kt`,
+`view/handlers/ToolbarActionHandler.kt`, `res/values*/strings.xml`.
+
 
 ---
 

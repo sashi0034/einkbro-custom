@@ -13,6 +13,7 @@
     <string name="menu_open_with">打开链接…</string>
     <string name="menu_quit">退出</string>
     <string name="menu_openFav">打开主页</string>
+    <string name="menu_openFav_newTab">在新标签页打开主页</string>
     <string name="menu_delete">删除</string>
     <string name="menu_edit">编辑</string>
     <string name="menu_closeTab">关闭标签页</string>

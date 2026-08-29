@@ -15,6 +15,7 @@
     <string name="menu_open_with">Відкрити посилання з …</string>
     <string name="menu_quit">Вихід</string>
     <string name="menu_openFav">Open Favorite</string>
+    <string name="menu_openFav_newTab">Відкрити Обране в новій вкладці</string>
     <string name="menu_delete">Видалити</string>
     <string name="menu_edit">Змінити</string>
     <string name="menu_closeTab">Закрити вкладку</string>

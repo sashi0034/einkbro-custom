@@ -98,5 +98,6 @@ class ToolbarActionHandler(
         ToolbarAction.PageAi -> dispatch(BrowserAction.ShowPageAiActionMenu)
         ToolbarAction.AudioOnly -> dispatch(BrowserAction.ToggleAudioOnlyMode)
         ToolbarAction.Userscript -> dispatch(BrowserAction.ShowUserScriptCommands)
+        ToolbarAction.OpenFavInNewTab -> dispatch(BrowserAction.AddNewTab(config.favoriteUrl))
     }
 }

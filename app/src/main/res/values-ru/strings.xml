@@ -17,6 +17,7 @@
 
     <string name="menu_quit">Выход</string>
     <string name="menu_openFav">Открыть Избранное</string>
+    <string name="menu_openFav_newTab">Открыть Избранное в новой вкладке</string>
     <string name="menu_delete">Удалить</string>
     <string name="menu_edit">Изменить</string>
     <string name="menu_closeTab">Закрыть вкладку</string>

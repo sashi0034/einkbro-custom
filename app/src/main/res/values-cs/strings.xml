@@ -15,6 +15,7 @@
     <string name="menu_open_with">Otevřít odkaz pomocí …</string>
     <string name="menu_quit">Ukončit</string>
     <string name="menu_openFav">Otevřít oblíbené</string>
+    <string name="menu_openFav_newTab">Otevřít oblíbené v nové kartě</string>
     <string name="menu_delete">Smazat</string>
     <string name="menu_edit">Upravit</string>
     <string name="menu_closeTab">Zavřít kartu</string>

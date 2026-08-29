@@ -19,6 +19,7 @@ import androidx.compose.material.icons.outlined.FolderCopy
 import androidx.compose.material.icons.outlined.FormatSize
 import androidx.compose.material.icons.outlined.Fullscreen
 import androidx.compose.material.icons.outlined.GTranslate
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.InvertColors
 import androidx.compose.material.icons.outlined.LibraryAdd
@@ -201,6 +202,10 @@ enum class ToolbarAction(
     Userscript(
         imageVector = Icons.Outlined.Extension,
         titleResId = R.string.setting_title_userscripts,
+    ),
+    OpenFavInNewTab(
+        imageVector = Icons.Outlined.Home,
+        titleResId = R.string.menu_openFav_newTab,
     );
 
 
