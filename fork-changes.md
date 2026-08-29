@@ -209,6 +209,31 @@ can be reached in one tap without losing the page being read.
 Files: `view/toolbaricons/ToolbarAction.kt`,
 `view/handlers/ToolbarActionHandler.kt`, `res/values*/strings.xml`.
 
+## 9. Not listed as an external dictionary on BOOX
+
+Onyx BOOX builds the "external app" list behind its dictionary/translation
+popup in `com.onyx.android.sdk.data.utils.EditorUtils.loadSupportedActivities()`
+(seen in `com.onyx.kreader`). It runs `queryIntentActivities` twice — once for
+`android.intent.action.PROCESS_TEXT` + `text/plain`, once for
+`colordict.intent.action.SEARCH` — merges both results and excludes only
+`com.onyx.dict` and its own package. There is no BOOX-side way to remove an
+entry, so declaring either filter put EinkBro in that picker permanently.
+
+`DictActivity` therefore declares no intent-filter at all and is
+`exported="false"`. Dropped:
+
+- `colordict.intent.action.SEARCH` / `PICK_RESULT` (the ColorDict protocol)
+- `android.intent.action.PROCESS_TEXT` — which also removes EinkBro from the
+  system text-selection menu in other apps. Same registration, so the two
+  cannot be separated.
+
+`BrowserActivity`'s `SEND` + `text/plain` filter is untouched and is not part of
+that query, so sharing text to EinkBro still works. `DictActivity.kt` itself is
+unchanged; its `colordict.*` and `PROCESS_TEXT` branches are simply unreachable
+now, which keeps this to one manifest hunk to revert.
+
+File: `AndroidManifest.xml`.
+
 
 ---
 
