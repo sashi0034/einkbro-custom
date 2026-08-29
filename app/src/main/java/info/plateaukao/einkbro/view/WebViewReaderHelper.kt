@@ -147,12 +147,13 @@ class WebViewReaderHelper(
     fun updateReaderSettingsStyle() {
         if (!isReaderModeOn) return
 
-        val paddingV = config.display.readerPaddingVertical
         val paddingH = config.display.readerPaddingHorizontal
         val lineHeight = String.format(Locale.ROOT, "%.1f", config.display.readerLineSpacing / 10.0)
         val twoColumn = !isVerticalRead && config.display.readerTwoColumnInLandscape
         val css = StringBuilder()
-        css.append("body.mozac-readerview-body { padding: ${paddingV}px ${paddingH}px !important; }\n")
+        // Side margin only. The vertical gap comes from the content margin, a
+        // view inset that stays put while the page scrolls.
+        css.append("body.mozac-readerview-body { padding: 0 ${paddingH}px !important; }\n")
         css.append(
             ".mozac-readerview-body .mozac-readerview-content p, " +
                     ".mozac-readerview-body .mozac-readerview-content li " +

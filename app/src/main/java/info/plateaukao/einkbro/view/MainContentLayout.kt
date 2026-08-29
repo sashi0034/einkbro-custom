@@ -73,15 +73,19 @@ class MainContentLayout(
                     FrameLayout.LayoutParams.MATCH_PARENT,
                     FrameLayout.LayoutParams.MATCH_PARENT
                 )
+                // Painted, not transparent: with a content margin configured this
+                // is what shows through in the gutter, and it has to read as part
+                // of the page rather than as a hole.
+                setBackgroundColor(resolveBackgroundColor(context))
             }
 
             // SwipeRefreshLayout
+            // MATCH_CONSTRAINT rather than MATCH_PARENT: all four edges are
+            // constrained below, and only MATCH_CONSTRAINT honours the margins
+            // ViewUnit.updateContentMargins sets to inset the page.
             val swipeRefreshLayout = MultiTouchSwipeRefreshLayout(context).apply {
                 id = R.id.swipe_refresh_layout
-                layoutParams = ConstraintLayout.LayoutParams(
-                    ConstraintLayout.LayoutParams.MATCH_PARENT,
-                    ConstraintLayout.LayoutParams.MATCH_PARENT
-                )
+                layoutParams = ConstraintLayout.LayoutParams(0, 0)
             }
             root.addView(swipeRefreshLayout)
 

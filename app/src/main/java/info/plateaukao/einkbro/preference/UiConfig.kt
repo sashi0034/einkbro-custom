@@ -38,6 +38,21 @@ class UiConfig(private val context: Context, private val sp: SharedPreferences) 
             putInt(K_TOOLBAR_ICON_SPACING, value.coerceIn(0, MAX_TOOLBAR_ICON_SPACING))
         }
 
+    /**
+     * Blank space kept between the web content and the top / bottom edge of the
+     * content area, in dp. Unlike a CSS page margin this is a view inset, so it
+     * stays put while the page scrolls — which is the point: it keeps text from
+     * running right up against the toolbar. Top and bottom are independent
+     * because only one of the two edges usually carries a toolbar.
+     */
+    var contentMarginTop: Int
+        get() = sp.getInt(K_CONTENT_MARGIN_TOP, 0).coerceIn(0, MAX_CONTENT_MARGIN)
+        set(value) = sp.edit { putInt(K_CONTENT_MARGIN_TOP, value.coerceIn(0, MAX_CONTENT_MARGIN)) }
+
+    var contentMarginBottom: Int
+        get() = sp.getInt(K_CONTENT_MARGIN_BOTTOM, 0).coerceIn(0, MAX_CONTENT_MARGIN)
+        set(value) = sp.edit { putInt(K_CONTENT_MARGIN_BOTTOM, value.coerceIn(0, MAX_CONTENT_MARGIN)) }
+
     var statusbarEnabled by BooleanPreference(sp, K_STATUSBAR_ENABLED, false)
 
     var statusbarPosition: StatusbarPosition
@@ -210,7 +225,10 @@ class UiConfig(private val context: Context, private val sp: SharedPreferences) 
         const val K_SECOND_TOOLBAR_ENABLED = "sp_second_toolbar_enabled"
         const val K_SECOND_TOOLBAR_ICONS = "sp_second_toolbar_icons"
         const val K_SECOND_TOOLBAR_ICONS_FOR_LARGE = "sp_second_toolbar_icons_for_large"
-        const val MAX_TOOLBAR_ICON_SPACING = 24
+        const val MAX_TOOLBAR_ICON_SPACING = 100
+        const val K_CONTENT_MARGIN_TOP = "sp_content_margin_top"
+        const val K_CONTENT_MARGIN_BOTTOM = "sp_content_margin_bottom"
+        const val MAX_CONTENT_MARGIN = 200
         const val K_STATUSBAR_ENABLED = "sp_statusbar_enabled"
         const val K_STATUSBAR_POSITION = "sp_statusbar_position"
         const val K_STATUSBAR_ITEMS = "sp_statusbar_items"

@@ -44,15 +44,10 @@ class ReaderSettingsDialogFragment(
     @Composable
     override fun Content() {
         ReaderSettingsContent(
-            initMarginVertical = config.display.readerPaddingVertical,
             initMarginHorizontal = config.display.readerPaddingHorizontal,
             initLineSpacing = config.display.readerLineSpacing,
             initTwoColumn = config.display.readerTwoColumnInLandscape,
             initKeepExtraContent = config.display.readerKeepExtraContent,
-            onMarginVerticalChanged = {
-                config.display.readerPaddingVertical = it
-                onSettingChanged()
-            },
             onMarginHorizontalChanged = {
                 config.display.readerPaddingHorizontal = it
                 onSettingChanged()
@@ -79,19 +74,16 @@ class ReaderSettingsDialogFragment(
 
 @Composable
 fun ReaderSettingsContent(
-    initMarginVertical: Int,
     initMarginHorizontal: Int,
     initLineSpacing: Int,
     initTwoColumn: Boolean,
     initKeepExtraContent: Boolean,
-    onMarginVerticalChanged: (Int) -> Unit,
     onMarginHorizontalChanged: (Int) -> Unit,
     onLineSpacingChanged: (Int) -> Unit,
     onTwoColumnChanged: (Boolean) -> Unit,
     onKeepExtraContentChanged: (Boolean) -> Unit,
     onFontConfigClick: () -> Unit,
 ) {
-    var marginVertical by remember { mutableFloatStateOf(initMarginVertical.toFloat()) }
     var marginHorizontal by remember { mutableFloatStateOf(initMarginHorizontal.toFloat()) }
     var lineSpacing by remember { mutableFloatStateOf(initLineSpacing.toFloat()) }
     var twoColumn by remember { mutableStateOf(initTwoColumn) }
@@ -123,24 +115,12 @@ fun ReaderSettingsContent(
 
         HorizontalSeparator()
 
-        Text(
-            text = "${stringResource(R.string.page_margin_vertical)}: ${marginVertical.roundToInt()}px",
-            color = MaterialTheme.colors.onBackground,
-            modifier = Modifier.padding(top = 10.dp),
-        )
-        Slider(
-            value = marginVertical,
-            valueRange = 0f..100f,
-            steps = 19,
-            onValueChange = {
-                marginVertical = it
-                onMarginVerticalChanged(it.roundToInt())
-            },
-        )
-
+        // Sides only: the top and bottom gap is the content margin (Settings →
+        // Toolbar), a view inset that survives scrolling.
         Text(
             text = "${stringResource(R.string.page_margin_horizontal)}: ${marginHorizontal.roundToInt()}px",
             color = MaterialTheme.colors.onBackground,
+            modifier = Modifier.padding(top = 10.dp),
         )
         Slider(
             value = marginHorizontal,
@@ -210,12 +190,10 @@ fun ReaderSettingsContent(
 private fun PreviewReaderSettingsContent() {
     MyTheme {
         ReaderSettingsContent(
-            initMarginVertical = 10,
             initMarginHorizontal = 10,
             initLineSpacing = 15,
             initTwoColumn = false,
             initKeepExtraContent = false,
-            onMarginVerticalChanged = {},
             onMarginHorizontalChanged = {},
             onLineSpacingChanged = {},
             onTwoColumnChanged = {},

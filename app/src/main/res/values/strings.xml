@@ -254,7 +254,6 @@
     <string name="reader_mode">Reader mode</string>
     <string name="reader_settings">Reader mode settings</string>
     <string name="page_margin">Page margin</string>
-    <string name="page_margin_vertical">Page margin (top/bottom)</string>
     <string name="page_margin_horizontal">Page margin (left/right)</string>
     <string name="line_spacing">Line spacing</string>
     <string name="two_column_in_landscape">Two columns in landscape</string>
@@ -634,7 +633,10 @@
     <string name="toolbar_icons">Toolbar icons</string>
     <string name="toolbar_icons_description">Arrange toolbar icons</string>
     <string name="setting_title_toolbar_icon_spacing">Icon spacing</string>
-    <string name="setting_summary_toolbar_icon_spacing">Extra gap between toolbar icons, in dp (0-24)</string>
+    <string name="setting_summary_toolbar_icon_spacing">Extra gap between toolbar icons, in dp (0-100)</string>
+    <string name="setting_title_content_margin_top">Content margin (top)</string>
+    <string name="setting_title_content_margin_bottom">Content margin (bottom)</string>
+    <string name="setting_summary_content_margin">Blank space kept between the page and the screen edge while scrolling, in dp</string>
     <string name="second_toolbar">Second toolbar</string>
     <string name="setting_title_second_toolbar">Show second toolbar</string>
     <string name="setting_summary_second_toolbar">Add a second bar on the opposite edge. Top/bottom toolbars only.</string>

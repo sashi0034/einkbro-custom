@@ -1168,6 +1168,8 @@ open class BrowserActivity : FragmentActivity(), BrowserController {
             UiConfig.K_TOOLBAR_ICONS_FOR_LARGE, UiConfig.K_TOOLBAR_ICONS,
             UiConfig.K_SECOND_TOOLBAR_ICONS, UiConfig.K_SECOND_TOOLBAR_ICONS_FOR_LARGE,
             UiConfig.K_TOOLBAR_ICON_SPACING -> composeToolbarViewController.updateIcons()
+            UiConfig.K_CONTENT_MARGIN_TOP,
+            UiConfig.K_CONTENT_MARGIN_BOTTOM -> ViewUnit.updateContentMargins(binding)
             UiConfig.K_SECOND_TOOLBAR_ENABLED -> {
                 composeToolbarViewController.updateIcons()
                 ViewUnit.updateAppbarPosition(binding)

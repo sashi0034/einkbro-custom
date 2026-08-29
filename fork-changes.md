@@ -13,7 +13,7 @@ Divergence point: upstream 16.5.0 (`5f295eb3`).
 The 46 dp icon slots used to abut edge to edge, which is easy to mis-tap on a
 low-refresh e-ink panel. A single setting now inserts a gap between them.
 
-- **Setting**: Settings → Toolbar → *Icon spacing* (dp, 0–24, default 0)
+- **Setting**: Settings → Toolbar → *Icon spacing* (dp, 0–100, default 0)
 - **Preference key**: `sp_toolbar_icon_spacing`
 - Applied with `Arrangement.spacedBy` in `view/compose/Toolbar.kt`, to the live
   bar and to the reorderable preview in the config screen, so the preview stays
@@ -60,21 +60,47 @@ Files: `view/MainActivityLayout.kt`, `unit/ViewUnit.kt`,
 `preference/UiConfig.kt`, `view/toolbaricons/ToolbarAction.kt`,
 `res/values/ids.xml`.
 
-## 3. Per-axis reader mode margin
+## 3. Content margin, and a side-only reader margin
 
-Reader mode had one padding value for all four sides. It is now split, so a tall
-screen can get wide side margins without wasting vertical space.
+Reader mode had one CSS padding value for all four sides. A CSS page padding
+scrolls away with the text, so it cannot keep a gap between the page and the
+toolbar — the text reaches the bar as soon as you turn a page. The two axes are
+now handled by different mechanisms, because they have different requirements.
+
+**Vertical — a view inset, applied to every page**
+
+The content area is inset from the top and the bottom, leaving a blank gutter
+that stays put while the page scrolls. Top and bottom are independent, since
+usually only one of the two edges carries a toolbar.
+
+- **Setting**: Settings → Toolbar → *Content margin (top)* / *(bottom)*
+  (dp, 0–200, default 0)
+- **Preference keys**: `sp_content_margin_top`, `sp_content_margin_bottom`
+- Implemented as margins on `MainContentLayout.swipeRefreshLayout` (switched to
+  `MATCH_CONSTRAINT`, since `MATCH_PARENT` ignores them), applied by
+  `ViewUnit.updateContentMargins()`. `MainContentLayout.root` now paints the
+  theme background so the gutter reads as part of the page.
+- The page-turn marker (§4) gets the same insets, so it keeps sharing a
+  coordinate space with the web view it draws over.
+- Not reader-mode specific: it is a property of the browser chrome, and applies
+  to every page.
+
+**Horizontal — still a reader-mode CSS padding**
+
+Side margins do not scroll away under vertical scrolling, so they stay as
+`body.mozac-readerview-body { padding: 0 Npx }`.
 
 - **Setting**: long-press the reader-mode icon (or Settings → UI → Reader mode
-  settings) → *Page margin (top/bottom)* and *Page margin (left/right)*
-- **Preference keys**: `sp_reader_padding_vertical`,
-  `sp_reader_padding_horizontal`
-- **Migration**: both fall back to the old single `sp_padding_for_reader_mode`
-  until that axis is written, so an upgrade keeps the margin the user had.
-- The two-column landscape `column-gap` follows the horizontal value.
+  settings) → *Page margin (left/right)*
+- **Preference key**: `sp_reader_padding_horizontal`
+- **Migration**: falls back to the old all-sides `sp_padding_for_reader_mode`
+  until written, so an upgrade keeps the side margin the user had.
+- The two-column landscape `column-gap` follows this value.
 
-Files: `preference/DisplayConfig.kt`, `view/WebViewReaderHelper.kt`,
-`view/dialog/compose/ReaderSettingsDialogFragment.kt`.
+Files: `preference/UiConfig.kt`, `preference/DisplayConfig.kt`,
+`unit/ViewUnit.kt`, `view/MainContentLayout.kt`, `view/WebViewReaderHelper.kt`,
+`view/dialog/compose/ReaderSettingsDialogFragment.kt`,
+`setting/screens/ToolbarSettings.kt`, `activity/BrowserActivity.kt`.
 
 ## 4. Page-turn seam marker
 
@@ -141,8 +167,9 @@ Files: `res/drawable/ic_reader_mode.xml` (new),
 | `sp_second_toolbar_enabled` | Boolean | `false` |
 | `sp_second_toolbar_icons` | String (ordinals) | `defaultSecondActions` |
 | `sp_second_toolbar_icons_for_large` | String (ordinals) | `defaultSecondActions` |
-| `sp_reader_padding_vertical` | Int (px) | old `sp_padding_for_reader_mode`, else `10` |
-| `sp_reader_padding_horizontal` | Int (px) | old `sp_padding_for_reader_mode`, else `10` |
+| `sp_content_margin_top` | Int (dp) | `0` |
+| `sp_content_margin_bottom` | Int (dp) | `0` |
+| `sp_reader_padding_horizontal` | Int (CSS px) | old `sp_padding_for_reader_mode`, else `10` |
 | `sp_page_turn_marker` | Boolean | `true` |
 
 New strings are in `values/strings.xml` and `values-ja/strings.xml`; the other

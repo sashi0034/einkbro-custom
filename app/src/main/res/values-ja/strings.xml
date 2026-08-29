@@ -150,7 +150,6 @@
     <string name="reader_mode">リーダーモード</string>
     <string name="reader_settings">リーダーモード設定</string>
     <string name="page_margin">ページ余白</string>
-    <string name="page_margin_vertical">ページ余白 (上下)</string>
     <string name="page_margin_horizontal">ページ余白 (左右)</string>
     <string name="line_spacing">行間</string>
     <string name="two_column_in_landscape">横向き時に2段組み</string>
@@ -525,7 +524,10 @@
     <string name="toolbar_icons">ツールバーアイコン</string>
     <string name="toolbar_icons_description">ツールバーアイコンを並べ替え</string>
     <string name="setting_title_toolbar_icon_spacing">アイコン間隔</string>
-    <string name="setting_summary_toolbar_icon_spacing">ツールバーアイコン間に追加する余白 (dp, 0〜24)</string>
+    <string name="setting_summary_toolbar_icon_spacing">ツールバーアイコン間に追加する余白 (dp, 0〜100)</string>
+    <string name="setting_title_content_margin_top">コンテンツ余白 (上)</string>
+    <string name="setting_title_content_margin_bottom">コンテンツ余白 (下)</string>
+    <string name="setting_summary_content_margin">スクロールしても残る、ページと画面端の間の空白 (dp)</string>
     <string name="second_toolbar">2段目のツールバー</string>
     <string name="setting_title_second_toolbar">2段目のツールバーを表示</string>
     <string name="setting_summary_second_toolbar">反対側の端にもう1本表示します。上下配置のときのみ有効です。</string>

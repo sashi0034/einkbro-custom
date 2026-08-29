@@ -277,6 +277,9 @@ object ViewUnit: KoinComponent {
 
     fun updateAppbarPosition(binding: MainActivityLayout) {
         binding.secondAppBarEnabled = config.ui.hasSecondToolbar
+        // Before the placements below, so the ConstraintSets they clone pick the
+        // margins up rather than writing back the previous ones.
+        updateContentMargins(binding)
         when (config.ui.toolbarPosition) {
             info.plateaukao.einkbro.preference.ToolbarPosition.Top -> moveAppbarToTop(binding)
             info.plateaukao.einkbro.preference.ToolbarPosition.Left -> moveAppbarToLeft(binding)
@@ -285,6 +288,29 @@ object ViewUnit: KoinComponent {
         }
     }
 
+
+    /**
+     * Insets the page from the top and bottom of the content area by the
+     * configured margins, leaving a blank gutter that stays put while the page
+     * scrolls — a CSS page margin would scroll away with the text.
+     *
+     * The page-turn marker gets the same insets so it keeps sharing a coordinate
+     * space with the web view it draws over.
+     */
+    fun updateContentMargins(binding: MainActivityLayout) {
+        val content = binding.activityMainContent
+        val density = content.root.context.resources.displayMetrics.density
+        val top = (config.ui.contentMarginTop * density).toInt()
+        val bottom = (config.ui.contentMarginBottom * density).toInt()
+
+        for (view in listOf(content.swipeRefreshLayout, content.pageTurnMarker)) {
+            val params = view.layoutParams as? ConstraintLayout.LayoutParams ?: continue
+            if (params.topMargin == top && params.bottomMargin == bottom) continue
+            params.topMargin = top
+            params.bottomMargin = bottom
+            view.layoutParams = params
+        }
+    }
 
     private fun moveAppbarToBottom(binding: MainActivityLayout) {
         setAppbarHorizontalLayoutParams(binding)

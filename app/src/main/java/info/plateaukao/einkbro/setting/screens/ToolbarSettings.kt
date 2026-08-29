@@ -48,6 +48,20 @@ fun buildToolbarSettingItems(deps: SettingScreenDeps): List<SettingItemInterface
             config.ui::toolbarIconSpacing,
             showValue = true,
         ),
+        ValueSettingItem(
+            R.string.setting_title_content_margin_top,
+            0,
+            R.string.setting_summary_content_margin,
+            config.ui::contentMarginTop,
+            showValue = true,
+        ),
+        ValueSettingItem(
+            R.string.setting_title_content_margin_bottom,
+            0,
+            R.string.setting_summary_content_margin,
+            config.ui::contentMarginBottom,
+            showValue = true,
+        ),
         BooleanSettingItem(
             R.string.setting_title_second_toolbar,
             0,
