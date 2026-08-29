@@ -181,6 +181,15 @@ Files: `assets/MozReadability.js`,
 `view/WebViewJsBridge.kt`, `view/WebViewReaderHelper.kt`,
 `browser/JsWebInterface.kt`, `activity/BrowserActivity.kt`.
 
+## 7. Distinct ReleaseAlt launcher name
+
+The normal release keeps the launcher name **EinkBro Custom**, while the
+side-by-side `.a` build is shown as **EinkBro Custom Alt**. This makes the two
+otherwise identical custom icons distinguishable on the launcher and app-info
+screens without changing either package ID or its saved data.
+
+File: `src/releaseAlt/res/values/strings.xml` (new).
+
 
 ---
 
