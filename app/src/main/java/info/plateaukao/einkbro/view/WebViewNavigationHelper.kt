@@ -71,7 +71,7 @@ class WebViewNavigationHelper(
                 webView.scrollY = min(webView.verticalScrollRange() - shiftOffset(), webView.scrollY)
                 reportPageTurn(webView.scrollY - before)
             } else {
-                reportPageTurn((movedRatio * markerAxisSize()).roundToInt())
+                reportPageTurn((movedRatio * markerAxisSize()).roundToInt(), nativeScroll = false)
             }
         }
     }
@@ -92,7 +92,7 @@ class WebViewNavigationHelper(
                 webView.scrollY = max(0, webView.scrollY)
                 reportPageTurn(webView.scrollY - before)
             } else {
-                reportPageTurn((movedRatio * markerAxisSize()).roundToInt())
+                reportPageTurn((movedRatio * markerAxisSize()).roundToInt(), nativeScroll = false)
             }
         }
     }
@@ -113,7 +113,20 @@ class WebViewNavigationHelper(
     private fun markerScrollPos(): Int =
         if (scrollsSideways()) webView.scrollX else webView.scrollY
 
-    private fun reportPageTurn(delta: Int) {
+    /**
+     * [nativeScroll] is false when the turn was handled inside the page by
+     * fix_scrolling.js: the web view's own scrollY did not move.
+     */
+    private fun reportPageTurn(delta: Int, nativeScroll: Boolean = true) {
+        // Pin the scrollbar to the turn. The turn already repaints the whole
+        // screen, so drawing the bar in that frame is free and it then costs
+        // nothing until the next turn, while the fade would spend its animation
+        // erasing the position the reader just asked for -- the same reasoning
+        // as the seam line's missing fade-out timer. Not when an inner element
+        // scrolled, though: scrollY is unchanged there and a pinned bar would
+        // sit at the top telling a lie. EBWebView.clearPageTurnMarks() undoes it.
+        webView.isScrollbarFadingEnabled = !nativeScroll
+
         // Turning the setting off mid-session should also take down a line that
         // is already on screen, so report "no seam" rather than bailing out.
         if (!config.touch.showPageTurnMarker) {

@@ -59,8 +59,21 @@ object ViewUnit: KoinComponent {
         return bitmap
     }
 
-    fun captureDrawingCache(view: View): Bitmap {
-        return view.drawToBitmap()
+    // View.draw() paints scrollbars too, so a bar left pinned by a page turn
+    // would be baked into a saved image (and into what the image translator
+    // reads). Re-enabling fading hides it for the duration of the draw.
+    private fun <T> View.withoutScrollbars(block: () -> T): T {
+        val wasFading = isScrollbarFadingEnabled
+        isScrollbarFadingEnabled = true
+        try {
+            return block()
+        } finally {
+            isScrollbarFadingEnabled = wasFading
+        }
+    }
+
+    fun captureDrawingCache(view: View): Bitmap = view.withoutScrollbars {
+        view.drawToBitmap()
     }
 
     @JvmStatic
@@ -74,7 +87,7 @@ object ViewUnit: KoinComponent {
         canvas.translate(-left.toFloat(), -top.toFloat())
         val scale = width / view.width
         canvas.scale(scale, scale, left.toFloat(), top.toFloat())
-        view.draw(canvas)
+        view.withoutScrollbars { view.draw(canvas) }
         canvas.restoreToCount(status)
         val alphaPaint = Paint()
         alphaPaint.color = Color.TRANSPARENT

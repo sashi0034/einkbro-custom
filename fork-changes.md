@@ -251,6 +251,40 @@ older framework WebView `websearch` ID are recognized.
 
 Files: `activity/delegates/ActionModeDelegate.kt`, `activity/BrowserActivity.kt`.
 
+## 11. Scrollbar stays up after a page turn
+
+The WebView scrollbar used to fade out ~250ms after every page turn. On e-ink
+that fade is pure cost: the turn has already repainted the whole screen, so
+drawing the bar in that frame is free and pinning it costs nothing until the
+next turn, while the fade spends an animation erasing the position the reader
+just asked for. Same reasoning as the seam line's missing fade-out timer in
+`PageTurnMarkerView`. Continuous scrolling keeps the platform behaviour, where
+the moving content already conveys progress and a persistent thumb only leaves
+a trail down the edge.
+
+- `WebViewNavigationHelper.reportPageTurn()` sets
+  `isScrollbarFadingEnabled = false`. It is the join point of every turn path,
+  so normal, vertical-read and two-column reading are covered at once.
+- **Except** when `fix_scrolling.js` handled the turn inside the page (a CSS
+  scrollable container under the viewport centre, i.e. many SPAs): the web
+  view's own `scrollY` did not move, so a pinned bar would sit at the top
+  telling a lie. Those paths pass `nativeScroll = false`, which restores fading.
+- `EBWebView.clearPageTurnMarks()` takes down the seam line and the bar
+  together — they share a lifetime, ending at a finger scroll, a pinch or a
+  scale change. Setting `isScrollbarFadingEnabled = true` returns the platform
+  default and hides the bar immediately, so no timer of our own is needed.
+- `ViewUnit` wraps its two capture helpers in `withoutScrollbars {}`.
+  `View.draw()` paints scrollbars, so a pinned bar would otherwise be baked into
+  a saved screenshot and into what the image translator reads.
+
+Not wired into the EPUB reader: `EpubReaderView` overrides
+`pageDownWithNoAnimation()` and never goes through `WebViewNavigationHelper`.
+
+There is deliberately no setting for this.
+
+Files: `view/WebViewNavigationHelper.kt`, `view/EBWebView.kt`,
+`browser/NinjaWebViewClient.kt`, `unit/ViewUnit.kt`.
+
 
 ---
 

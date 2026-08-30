@@ -297,6 +297,16 @@ open class EBWebView(
         return super.dispatchTouchEvent(event)
     }
 
+    /**
+     * Drops what a page turn put on screen: the seam line and the pinned
+     * scrollbar. The two share a lifetime — both stay until the reader moves the
+     * page some other way. Re-enabling fading also hides the bar immediately.
+     */
+    fun clearPageTurnMarks() {
+        pageTurnMarker?.clear()
+        isScrollbarFadingEnabled = true
+    }
+
     private fun updatePageTurnMarkerForTouch(event: MotionEvent) {
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
@@ -309,7 +319,7 @@ open class EBWebView(
                 // A second pointer starts a potential pinch. Clear immediately
                 // rather than leaving a stale seam during the first scale frame.
                 pageTurnMarkerTouchTracking = false
-                pageTurnMarker?.clear()
+                clearPageTurnMarks()
             }
 
             MotionEvent.ACTION_MOVE -> {
@@ -319,7 +329,7 @@ open class EBWebView(
                     val slop = pageTurnMarkerTouchSlop.toFloat()
                     if (dx * dx + dy * dy > slop * slop) {
                         pageTurnMarkerTouchTracking = false
-                        pageTurnMarker?.clear()
+                        clearPageTurnMarks()
                     }
                 }
             }

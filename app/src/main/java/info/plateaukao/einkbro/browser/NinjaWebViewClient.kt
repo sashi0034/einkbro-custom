@@ -105,7 +105,7 @@ class EBWebViewClient(
 
     override fun onScaleChanged(view: WebView, oldScale: Float, newScale: Float) {
         super.onScaleChanged(view, oldScale, newScale)
-        if (oldScale != newScale) ebWebView.pageTurnMarker?.clear()
+        if (oldScale != newScale) ebWebView.clearPageTurnMarks()
     }
 
     override fun doUpdateVisitedHistory(view: WebView, url: String, isReload: Boolean) {
