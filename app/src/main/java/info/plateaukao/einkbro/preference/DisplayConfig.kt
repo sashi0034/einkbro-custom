@@ -175,13 +175,24 @@ class DisplayConfig(private val sp: SharedPreferences) {
     var zoomInCustomView by BooleanPreference(sp, "sp_zoom_in_custom_view", false)
     var readerKeepExtraContent by BooleanPreference(sp, "sp_reader_keep_extra_content", false)
 
-    // Reader side margin, in CSS px. Horizontal only: the vertical gap is a view
-    // inset (UiConfig.contentMarginTop / contentMarginBottom) so that it survives
-    // scrolling, which a CSS page padding does not. Falls back to the old
-    // all-sides value so an upgrade keeps the side margin the user already had.
-    var readerPaddingHorizontal: Int
+    // Reader side margins, in CSS px, one per side: a page held in one hand wants
+    // more room under the thumb than on the other edge. Horizontal only -- the
+    // vertical gap is a view inset (UiConfig.contentMarginTop /
+    // contentMarginBottom) so that it survives scrolling, which a CSS page padding
+    // does not.
+    var readerPaddingLeft: Int
+        get() = sp.getInt(K_READER_PADDING_LEFT, legacyReaderPaddingHorizontal)
+        set(value) = sp.edit { putInt(K_READER_PADDING_LEFT, value) }
+
+    var readerPaddingRight: Int
+        get() = sp.getInt(K_READER_PADDING_RIGHT, legacyReaderPaddingHorizontal)
+        set(value) = sp.edit { putInt(K_READER_PADDING_RIGHT, value) }
+
+    // Both sides start from whatever the user had when the margin was a single
+    // value, which in turn started from the even older all-sides padding, so an
+    // upgrade lands on the same layout it left.
+    private val legacyReaderPaddingHorizontal: Int
         get() = sp.getInt(K_READER_PADDING_HORIZONTAL, sp.getInt(K_PADDING_FOR_READER_MODE, 10))
-        set(value) = sp.edit { putInt(K_READER_PADDING_HORIZONTAL, value) }
 
     // Line spacing (CSS line-height) in tenths: 15 -> 1.5
     var readerLineSpacing by IntPreference(sp, K_READER_LINE_SPACING, 15)
@@ -223,6 +234,8 @@ class DisplayConfig(private val sp: SharedPreferences) {
         const val K_ENABLE_ZOOM_TEXT_WRAP_REFLOW = "sp_enable_zoom_text_wrap_reflow"
         private const val K_PADDING_FOR_READER_MODE = "sp_padding_for_reader_mode"
         private const val K_READER_PADDING_HORIZONTAL = "sp_reader_padding_horizontal"
+        private const val K_READER_PADDING_LEFT = "sp_reader_padding_left"
+        private const val K_READER_PADDING_RIGHT = "sp_reader_padding_right"
         private const val K_READER_LINE_SPACING = "sp_reader_line_spacing"
         private const val K_READER_TWO_COLUMN_LANDSCAPE = "sp_reader_two_column_landscape"
     }

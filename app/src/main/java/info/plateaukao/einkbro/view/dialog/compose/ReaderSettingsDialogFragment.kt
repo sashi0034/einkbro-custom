@@ -44,12 +44,17 @@ class ReaderSettingsDialogFragment(
     @Composable
     override fun Content() {
         ReaderSettingsContent(
-            initMarginHorizontal = config.display.readerPaddingHorizontal,
+            initMarginLeft = config.display.readerPaddingLeft,
+            initMarginRight = config.display.readerPaddingRight,
             initLineSpacing = config.display.readerLineSpacing,
             initTwoColumn = config.display.readerTwoColumnInLandscape,
             initKeepExtraContent = config.display.readerKeepExtraContent,
-            onMarginHorizontalChanged = {
-                config.display.readerPaddingHorizontal = it
+            onMarginLeftChanged = {
+                config.display.readerPaddingLeft = it
+                onSettingChanged()
+            },
+            onMarginRightChanged = {
+                config.display.readerPaddingRight = it
                 onSettingChanged()
             },
             onLineSpacingChanged = {
@@ -74,17 +79,20 @@ class ReaderSettingsDialogFragment(
 
 @Composable
 fun ReaderSettingsContent(
-    initMarginHorizontal: Int,
+    initMarginLeft: Int,
+    initMarginRight: Int,
     initLineSpacing: Int,
     initTwoColumn: Boolean,
     initKeepExtraContent: Boolean,
-    onMarginHorizontalChanged: (Int) -> Unit,
+    onMarginLeftChanged: (Int) -> Unit,
+    onMarginRightChanged: (Int) -> Unit,
     onLineSpacingChanged: (Int) -> Unit,
     onTwoColumnChanged: (Boolean) -> Unit,
     onKeepExtraContentChanged: (Boolean) -> Unit,
     onFontConfigClick: () -> Unit,
 ) {
-    var marginHorizontal by remember { mutableFloatStateOf(initMarginHorizontal.toFloat()) }
+    var marginLeft by remember { mutableFloatStateOf(initMarginLeft.toFloat()) }
+    var marginRight by remember { mutableFloatStateOf(initMarginRight.toFloat()) }
     var lineSpacing by remember { mutableFloatStateOf(initLineSpacing.toFloat()) }
     var twoColumn by remember { mutableStateOf(initTwoColumn) }
     var keepExtraContent by remember { mutableStateOf(initKeepExtraContent) }
@@ -118,17 +126,31 @@ fun ReaderSettingsContent(
         // Sides only: the top and bottom gap is the content margin (Settings →
         // Toolbar), a view inset that survives scrolling.
         Text(
-            text = "${stringResource(R.string.page_margin_horizontal)}: ${marginHorizontal.roundToInt()}px",
+            text = "${stringResource(R.string.page_margin_left)}: ${marginLeft.roundToInt()}px",
             color = MaterialTheme.colors.onBackground,
             modifier = Modifier.padding(top = 10.dp),
         )
         Slider(
-            value = marginHorizontal,
+            value = marginLeft,
             valueRange = 0f..100f,
             steps = 19,
             onValueChange = {
-                marginHorizontal = it
-                onMarginHorizontalChanged(it.roundToInt())
+                marginLeft = it
+                onMarginLeftChanged(it.roundToInt())
+            },
+        )
+
+        Text(
+            text = "${stringResource(R.string.page_margin_right)}: ${marginRight.roundToInt()}px",
+            color = MaterialTheme.colors.onBackground,
+        )
+        Slider(
+            value = marginRight,
+            valueRange = 0f..100f,
+            steps = 19,
+            onValueChange = {
+                marginRight = it
+                onMarginRightChanged(it.roundToInt())
             },
         )
 
@@ -190,11 +212,13 @@ fun ReaderSettingsContent(
 private fun PreviewReaderSettingsContent() {
     MyTheme {
         ReaderSettingsContent(
-            initMarginHorizontal = 10,
+            initMarginLeft = 10,
+            initMarginRight = 10,
             initLineSpacing = 15,
             initTwoColumn = false,
             initKeepExtraContent = false,
-            onMarginHorizontalChanged = {},
+            onMarginLeftChanged = {},
+            onMarginRightChanged = {},
             onLineSpacingChanged = {},
             onTwoColumnChanged = {},
             onKeepExtraContentChanged = {},

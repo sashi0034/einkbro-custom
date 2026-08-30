@@ -90,12 +90,20 @@ usually only one of the two edges carries a toolbar.
 Side margins do not scroll away under vertical scrolling, so they stay as
 `body.mozac-readerview-body { padding: 0 Npx }`.
 
+Left and right are independent: a device held in one hand wants more room
+under the thumb than on the other edge.
+
 - **Setting**: long-press the reader-mode icon (or Settings → UI → Reader mode
-  settings) → *Page margin (left/right)*
-- **Preference key**: `sp_reader_padding_horizontal`
-- **Migration**: falls back to the old all-sides `sp_padding_for_reader_mode`
-  until written, so an upgrade keeps the side margin the user had.
-- The two-column landscape `column-gap` follows this value.
+  settings) → *Page margin (left)* / *(right)*
+- **Preference keys**: `sp_reader_padding_left`, `sp_reader_padding_right`
+- **Migration**: each side falls back to the single-value
+  `sp_reader_padding_horizontal`, which in turn still falls back to the even
+  older all-sides `sp_padding_for_reader_mode`, so an upgrade lands on the
+  layout it left.
+- The two-column landscape `column-gap` is `left + right`. Column 2 starts at
+  `left + 2*(colWidth + gap)`; setting that to one viewport gives that value,
+  which keeps a page turn exactly one `webView.width` wide. It is also what the
+  gutter should look like — the facing margins of two pages.
 
 Files: `preference/UiConfig.kt`, `preference/DisplayConfig.kt`,
 `unit/ViewUnit.kt`, `view/MainContentLayout.kt`, `view/WebViewReaderHelper.kt`,
@@ -298,7 +306,8 @@ Files: `view/WebViewNavigationHelper.kt`, `view/EBWebView.kt`,
 | `sp_second_toolbar_icons_for_large` | String (ordinals) | `defaultSecondActions` |
 | `sp_content_margin_top` | Int (dp) | `0` |
 | `sp_content_margin_bottom` | Int (dp) | `0` |
-| `sp_reader_padding_horizontal` | Int (CSS px) | old `sp_padding_for_reader_mode`, else `10` |
+| `sp_reader_padding_left` | Int (CSS px) | old `sp_reader_padding_horizontal`, else `10` |
+| `sp_reader_padding_right` | Int (CSS px) | old `sp_reader_padding_horizontal`, else `10` |
 | `sp_page_turn_marker` | Boolean | `true` |
 
 New strings are in `values/strings.xml` and `values-ja/strings.xml`; the other

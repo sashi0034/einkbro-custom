@@ -151,7 +151,8 @@
     <string name="reader_mode">リーダーモード</string>
     <string name="reader_settings">リーダーモード設定</string>
     <string name="page_margin">ページ余白</string>
-    <string name="page_margin_horizontal">ページ余白 (左右)</string>
+    <string name="page_margin_left">ページ余白 (左)</string>
+    <string name="page_margin_right">ページ余白 (右)</string>
     <string name="line_spacing">行間</string>
     <string name="two_column_in_landscape">横向き時に2段組み</string>
     <string name="keep_extra_content">追加コンテンツを保持</string>

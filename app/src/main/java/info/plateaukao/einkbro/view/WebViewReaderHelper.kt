@@ -161,23 +161,29 @@ class WebViewReaderHelper(
     fun updateReaderSettingsStyle() {
         if (!isReaderModeOn) return
 
-        val paddingH = config.display.readerPaddingHorizontal
+        val paddingLeft = config.display.readerPaddingLeft
+        val paddingRight = config.display.readerPaddingRight
         val lineHeight = String.format(Locale.ROOT, "%.1f", config.display.readerLineSpacing / 10.0)
         val twoColumn = !isVerticalRead && config.display.readerTwoColumnInLandscape
         val css = StringBuilder()
         // Side margin only. The vertical gap comes from the content margin, a
         // view inset that stays put while the page scrolls.
-        css.append("body.mozac-readerview-body { padding: 0 ${paddingH}px !important; }\n")
+        css.append(
+            "body.mozac-readerview-body " +
+                    "{ padding: 0 ${paddingRight}px 0 ${paddingLeft}px !important; }\n"
+        )
         css.append(
             ".mozac-readerview-body .mozac-readerview-content p, " +
                     ".mozac-readerview-body .mozac-readerview-content li " +
                     "{ line-height: $lineHeight !important; }\n"
         )
         if (twoColumn) {
-            // margin 0 (killing the 8px UA default) + column-gap = 2 * the
-            // horizontal padding make each two-column "page" exactly one
-            // viewport wide, so page turns can jump by webView.width without
-            // drifting.
+            // margin 0 (killing the 8px UA default) + column-gap = left +
+            // right padding make each two-column "page" exactly one viewport
+            // wide, so page turns can jump by webView.width without drifting:
+            // column 2 starts at left + 2*(colWidth + gap), and solving that
+            // for one viewport gives gap = left + right. It is also what the
+            // gutter should look like -- the facing margins of two pages.
             css.append(
                 """
                 @media screen and (orientation: landscape) {
@@ -188,7 +194,7 @@ class WebViewReaderHelper(
                     overflow-x: auto;
                     overflow-y: hidden;
                     column-count: 2;
-                    column-gap: ${paddingH * 2}px;
+                    column-gap: ${paddingLeft + paddingRight}px;
                     column-fill: auto;
                   }
                 }
