@@ -234,6 +234,23 @@ now, which keeps this to one manifest hunk to revert.
 
 File: `AndroidManifest.xml`.
 
+## 10. Keep the default text-selection web search inside EinkBro
+
+Android WebView/Chromium implements the standard selection menu's **Web
+search** item by sending an implicit `android.intent.action.WEB_SEARCH` intent.
+It does not target the host browser, so Android can resolve that intent to a
+different installed browser or search app.
+
+When **Show Default Selected Text Menu** is enabled, EinkBro now identifies the
+WebView-owned web-search item and consumes its click before Chromium launches
+that implicit intent. The selected text is sent through EinkBro's normal search
+path instead, respecting the existing **external search in same tab** setting.
+Copy, share, text-processing actions, and editable-field selection menus are
+unchanged. Both Chromium's `select_action_menu_web_search` resource ID and the
+older framework WebView `websearch` ID are recognized.
+
+Files: `activity/delegates/ActionModeDelegate.kt`, `activity/BrowserActivity.kt`.
+
 
 ---
 

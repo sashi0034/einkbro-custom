@@ -1,12 +1,16 @@
 package info.plateaukao.einkbro.activity.delegates
 
 import android.content.Intent
+import android.content.res.Resources
 import android.graphics.Point
+import android.os.Build
 import android.view.ActionMode
+import android.view.MenuItem
 import android.view.View
 import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
+import android.webkit.WebView
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
@@ -56,6 +60,7 @@ class ActionModeDelegate(
     private val updateTranslationInput: suspend () -> Unit,
     private val toggleSplitScreen: (url: String?) -> Unit,
     private val chatWithWeb: (useSplitScreen: Boolean, content: String?, runWithAction: ChatGPTActionInfo?) -> Unit,
+    private val openWebSearch: (query: String) -> Unit,
 ) {
     private var actionModeView: View? = null
 
@@ -193,6 +198,10 @@ class ActionModeDelegate(
     fun onActionModeStarted(mode: ActionMode) {
         val isTextEditMode = ViewUnit.isTextEditMode(activity, mode.menu)
 
+        if (config.ui.showDefaultActionMenu && !isTextEditMode) {
+            redirectWebSearchToEinkBro(mode)
+        }
+
         if (remoteConnViewModel.isSendingTextSearch && !isTextEditMode) {
             mode.hide(1000000)
             mode.menu.clear()
@@ -247,6 +256,53 @@ class ActionModeDelegate(
             mode.menu.clear()
         }
     }
+
+    /**
+     * Chromium implements the WebView selection menu's "Web search" action by launching an
+     * implicit ACTION_WEB_SEARCH intent. That lets Android route the query to another browser,
+     * even though the selection was made in EinkBro. Consume just that menu item before
+     * Chromium sees it and send the selected text through EinkBro's normal search path instead.
+     */
+    private fun redirectWebSearchToEinkBro(mode: ActionMode) {
+        val webSearchItem = (0 until mode.menu.size())
+            .asSequence()
+            .map(mode.menu::getItem)
+            .firstOrNull(::isWebSearchMenuItem)
+            ?: return
+
+        webSearchItem.setOnMenuItemClickListener {
+            activity.lifecycleScope.launch {
+                val query = getFocusedWebView().getSelectedText()
+                if (query.isNotBlank()) {
+                    openWebSearch(HelperUnit.unescapeJava(query))
+                }
+                mode.finish()
+            }
+            true
+        }
+    }
+
+    private fun isWebSearchMenuItem(item: MenuItem): Boolean {
+        if (item.intent?.action == Intent.ACTION_WEB_SEARCH) return true
+
+        return webSearchResources().any { resources ->
+            runCatching { resources.getResourceEntryName(item.itemId) }
+                .getOrNull() in WEB_SEARCH_RESOURCE_NAMES
+        }
+    }
+
+    private fun webSearchResources(): List<Resources> = buildList {
+        add(activity.resources)
+        add(Resources.getSystem())
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            WebView.getCurrentWebViewPackage()?.packageName?.let { packageName ->
+                runCatching {
+                    activity.packageManager.getResourcesForApplication(packageName)
+                }.getOrNull()?.let(::add)
+            }
+        }
+    }.distinct()
 
     private fun isInSplitSearchMode(): Boolean =
         splitSearchViewModel.state != null && isTwoPaneSecondPaneDisplayed()
@@ -331,4 +387,8 @@ class ActionModeDelegate(
 
     val actionModeViewRef: View?
         get() = actionModeView
+
+    private companion object {
+        val WEB_SEARCH_RESOURCE_NAMES = setOf("select_action_menu_web_search", "websearch")
+    }
 }

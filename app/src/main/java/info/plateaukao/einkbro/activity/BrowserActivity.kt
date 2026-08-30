@@ -329,6 +329,13 @@ open class BrowserActivity : FragmentActivity(), BrowserController {
             updateTranslationInput = { translationDelegate.updateTranslationInput() },
             toggleSplitScreen = { url -> toggleSplitScreen(url) },
             chatWithWeb = { useSplitScreen, content, action -> chatWithWeb(useSplitScreen, content, action) },
+            openWebSearch = { query ->
+                if (browserState.currentAlbumController != null && config.ai.isExternalSearchInSameTab) {
+                    getFocusedWebView().loadUrl(query)
+                } else {
+                    addAlbum("", query, true)
+                }
+            },
         )
     }
 
