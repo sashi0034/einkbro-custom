@@ -50,7 +50,7 @@ class KeyHandler(
             }
 
             KeyEvent.KEYCODE_BACK -> {
-                keyCallback.handleBackKey()
+                keyCallback.handleBackKey(fromSystemBack = true)
                 return true
             }
         }

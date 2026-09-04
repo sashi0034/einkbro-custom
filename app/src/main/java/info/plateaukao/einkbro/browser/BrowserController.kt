@@ -91,7 +91,12 @@ interface TtsController {
 
 interface KeyInputController {
     fun handleKeyEvent(event: KeyEvent): Boolean
-    fun handleBackKey()
+    /**
+     * [fromSystemBack] marks the OS navigation-bar button, which always closes
+     * the tab once the history is exhausted. The in-app back button and the
+     * gestures bound to it follow the "back key behaviour" setting instead.
+     */
+    fun handleBackKey(fromSystemBack: Boolean = false)
     fun sendPageUpKey()
     fun sendPageDownKey()
     fun sendLeftKey()

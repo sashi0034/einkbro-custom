@@ -293,6 +293,26 @@ There is deliberately no setting for this.
 Files: `view/WebViewNavigationHelper.kt`, `view/EBWebView.kt`,
 `browser/NinjaWebViewClient.kt`, `unit/ViewUnit.kt`.
 
+## 12. The system back button always closes the tab
+
+At the first page of a tab's history, *Back key behaviour* (`Settings →
+Behavior`, `sp_close_tab_when_no_more_back_history`) decides between closing the
+tab and showing a "no previous page" toast. That choice now applies to the
+in-app back button only. The OS navigation-bar button closes the tab either way:
+it is the system-wide "leave this screen" gesture, and a toast in answer to it
+leaves no way out of the tab but the toolbar.
+
+- `KeyInputController.handleBackKey()` takes `fromSystemBack: Boolean = false`;
+  the default keeps every existing call site unchanged.
+- Only `KeyHandler`'s `KEYCODE_BACK` branch passes `true`. The toolbar button,
+  the gestures bound to Back, and the volume-key double-click all stay on the
+  setting, being in-app actions.
+- Everything before that point — overview dialog, fullscreen video, a hidden
+  toolbar — is unchanged; the flag is read only once the history is exhausted.
+
+Files: `browser/BrowserController.kt`, `activity/BrowserActivity.kt`,
+`activity/KeyHandler.kt`.
+
 
 ---
 

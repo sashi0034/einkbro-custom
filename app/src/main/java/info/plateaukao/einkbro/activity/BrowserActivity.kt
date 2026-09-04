@@ -672,7 +672,7 @@ open class BrowserActivity : FragmentActivity(), BrowserController {
         composeToolbarViewController.updateIcons(ToolbarAction.ReaderMode)
     }
 
-    override fun handleBackKey() {
+    override fun handleBackKey(fromSystemBack: Boolean) {
         ViewUnit.hideKeyboard(this)
         if (chromeSetupDelegate.overviewDialogController.isVisible()) hideOverview()
         if (fullscreenDelegate.fullscreenHolder != null) {
@@ -685,7 +685,10 @@ open class BrowserActivity : FragmentActivity(), BrowserController {
             if (!ebWebView.isTranslatePage && ebWebView.canGoBack()) {
                 ebWebView.goBack()
             } else {
-                if (config.tab.closeTabWhenNoMoreBackHistory) removeAlbum()
+                // The system back button is the OS-wide "leave this screen"
+                // gesture, so it closes the tab whatever the setting says;
+                // the setting governs the in-app back button only.
+                if (fromSystemBack || config.tab.closeTabWhenNoMoreBackHistory) removeAlbum()
                 else EBToast.show(this, R.string.no_previous_page)
             }
         }
